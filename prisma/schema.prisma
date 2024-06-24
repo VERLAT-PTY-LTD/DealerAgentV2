@@ -75,12 +75,18 @@ model Subscription {
 }
 
 model Todo {
-  id          Int     @id @default(autoincrement())
-  title       String? @db.VarChar
-  description String? @db.VarChar
-  user_id     String?
-  author      String? @db.VarChar
-  user        User?   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                 Int      @id @default(autoincrement())
+  name               String   // Changed from title
+  task               String   // Changed from description
+  transferPhoneNumber String
+  aiVoice            String
+  metadataKey        String
+  metadataValue      String
+  user_id            String?
+  author             String?
+  user               User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map(name: "todos")
 }
+
+

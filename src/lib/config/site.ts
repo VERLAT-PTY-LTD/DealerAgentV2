@@ -1,7 +1,7 @@
 const siteConfig = {
-  name: 'Saas Starter Kit',
-  alt_name: 'My SAAS',
-  description: 'An open source Saas boilerplate with Nextjs and Prisma.',
+  name: 'Dealer Agent Admin',
+  alt_name: 'DA Admin',
+  description: 'Accelerating your dealership',
   url: process.env.NEXT_PUBLIC_DOMAIN,
   ogImage: '',
   loading_bar_color: '#ADD8E6',

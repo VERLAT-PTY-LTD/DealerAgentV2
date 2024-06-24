@@ -2,17 +2,26 @@
 
 import * as z from 'zod';
 
+// export const todoFormSchema = z.object({
+//   title: z
+//     .string({
+//       required_error: 'Please enter a Title.'
+//     })
+//     .max(30, {
+//       message: 'Title must not be longer than 30 characters.'
+//     }),
+//   description: z.string().min(8, {
+//     message: 'Description Must be at least 8 characters'
+//   })
+// });
+
 export const todoFormSchema = z.object({
-  title: z
-    .string({
-      required_error: 'Please enter a Title.'
-    })
-    .max(30, {
-      message: 'Title must not be longer than 30 characters.'
-    }),
-  description: z.string().min(8, {
-    message: 'Description Must be at least 8 characters'
-  })
+  name: z.string().nonempty("Name is required"),
+  task: z.string().nonempty("Task is required"),
+  transferPhoneNumber: z.string().nonempty("Transfer Phone Number is required"),
+  aiVoice: z.string().nonempty("AI Voice is required"),
+  metadataKey: z.string().nonempty("Metadata Key is required"),
+  metadataValue: z.string().nonempty("Metadata Value is required"),
 });
 
 export const DisplayNameFormSchema = z.object({

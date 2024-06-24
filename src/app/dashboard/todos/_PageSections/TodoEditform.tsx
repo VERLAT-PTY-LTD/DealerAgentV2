@@ -16,20 +16,33 @@ import { toast } from 'react-toastify';
 import { Todo } from '@prisma/client';
 import config from '@/lib/config/api';
 import configuration from '@/lib/config/auth';
-
 interface EditFormProps {
-  todo: Todo;
+  todo: {
+    id: number;
+    name: string;
+    task: string;
+    transferPhoneNumber: string;
+    aiVoice: string;
+    metadataKey: string;
+    metadataValue: string;
+    user_id: string;
+    author: string;
+  };
 }
 
 export default function TodosEditForm({ todo }: EditFormProps) {
   const router = useRouter();
-  const { title, description, id } = todo;
+  const { name, task, id } = todo;
 
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
-      title,
-      description
+      name: '',
+      task: '',
+      transferPhoneNumber: '',
+      aiVoice: '',
+      metadataKey: '',
+      metadataValue: '',
     }
   });
 
@@ -40,11 +53,25 @@ export default function TodosEditForm({ todo }: EditFormProps) {
   } = form;
 
   const onSubmit = async (values: todoFormValues) => {
-    const title = values.title;
-    const description = values.description;
+    const {
+      name,
+      task,
+      transferPhoneNumber,
+      aiVoice,
+      metadataKey,
+      metadataValue
+    } = values;
+    
     const todo_id = Number(id);
-
-    const props = { id: todo_id, title, description };
+    const props = {
+      id: todo_id,
+      name,
+      task,
+      transferPhoneNumber,
+      aiVoice,
+      metadataKey,
+      metadataValue
+    };
 
     try {
       await UpdateTodo(props);
@@ -53,7 +80,14 @@ export default function TodosEditForm({ todo }: EditFormProps) {
       throw err;
     }
 
-    reset({ title: '', description: '' });
+    reset({
+      name: '',
+      task: '',
+      transferPhoneNumber: '',
+      aiVoice: '',
+      metadataKey: '',
+      metadataValue: '',
+    });
     toast.success('Todo Updated');
     router.refresh();
     router.push(configuration.redirects.toMyTodos);
@@ -64,7 +98,7 @@ export default function TodosEditForm({ todo }: EditFormProps) {
       <Card className="bg-background-light dark:bg-background-dark">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Update Todo</CardTitle>
-          <CardDescription>Update Todo with a new Title or Description</CardDescription>
+          <CardDescription>Update Todo with campaign details</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -72,14 +106,14 @@ export default function TodosEditForm({ todo }: EditFormProps) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={form.control}
-                name="title"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormMessage />
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('title')}
+                        {...register('name')}
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
@@ -89,10 +123,10 @@ export default function TodosEditForm({ todo }: EditFormProps) {
               />
               <FormField
                 control={form.control}
-                name="description"
+                name="task"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Task</FormLabel>
                     <FormControl>
                       <Textarea
                         className="bg-background-light dark:bg-background-dark"
@@ -100,6 +134,70 @@ export default function TodosEditForm({ todo }: EditFormProps) {
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="transferPhoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transfer Phone Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('transferPhoneNumber')}
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="aiVoice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AI Voice</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('aiVoice')}
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="metadataKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Metadata Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('metadataKey')}
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="metadataValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Metadata Value</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('metadataValue')}
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

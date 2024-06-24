@@ -19,8 +19,12 @@ export default function TodosCreateForm() {
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
-      title: '',
-      description: ''
+      name: '',
+      task: '',
+      transferPhoneNumber: '',
+      aiVoice: '',
+      metadataKey: '',
+      metadataValue: '',
     }
   });
 
@@ -31,9 +35,23 @@ export default function TodosCreateForm() {
   } = form;
 
   const onSubmit = async (values: todoFormValues) => {
-    const title = values.title;
-    const description = values.description;
-    const props = { title, description };
+    const {
+      name,
+      task,
+      transferPhoneNumber,
+      aiVoice,
+      metadataKey,
+      metadataValue
+    } = values;
+    
+    const props = {
+      name,
+      task,
+      transferPhoneNumber,
+      aiVoice,
+      metadataKey,
+      metadataValue
+    };
 
     try {
       await CreateTodo(props);
@@ -42,7 +60,14 @@ export default function TodosCreateForm() {
       throw err;
     }
 
-    reset({ title: '', description: '' });
+    reset({
+      name: '',
+      task: '',
+      transferPhoneNumber: '',
+      aiVoice: '',
+      metadataKey: '',
+      metadataValue: '',
+    });
     toast.success('Todo Submitted');
     router.refresh();
   };
@@ -52,7 +77,7 @@ export default function TodosCreateForm() {
       <Card className="bg-background-light dark:bg-background-dark">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">New Todo</CardTitle>
-          <CardDescription>Create a Todo with Title and Description</CardDescription>
+          <CardDescription>Create a Todo with campaign details</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -60,29 +85,102 @@ export default function TodosCreateForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={form.control}
-                name="title"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormMessage /> <FormLabel>Title</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('title')}
+                        {...register('name')}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="description"
+                name="task"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Task</FormLabel>
                     <FormControl>
                       <Textarea
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="transferPhoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transfer Phone Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('transferPhoneNumber')}
+                        type="text"
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="aiVoice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AI Voice</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('aiVoice')}
+                        type="text"
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="metadataKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Metadata Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('metadataKey')}
+                        type="text"
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="metadataValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Metadata Value</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('metadataValue')}
+                        type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />

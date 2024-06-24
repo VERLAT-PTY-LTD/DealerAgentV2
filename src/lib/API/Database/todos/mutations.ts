@@ -13,16 +13,19 @@ interface DeleteTodoPropsI {
   id: number;
 }
 
-export const CreateTodo = async ({ title, description }: todoFormValues) => {
+export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue }: todoFormValues) => {
   const user = await GetUser();
-
   const user_id = user?.id;
   const author = user?.display_name || '';
   const data: Prisma.TodoCreateInput = {
-    title,
-    description,
-    author,
-    user: { connect: { id: user_id } }
+    name,
+    task,
+    transferPhoneNumber,
+    aiVoice,
+    metadataKey,
+    metadataValue,
+    user: { connect: { id: user_id } },
+    author
   };
 
   try {
@@ -32,23 +35,27 @@ export const CreateTodo = async ({ title, description }: todoFormValues) => {
   }
 };
 
-export const UpdateTodo = async ({ id, title, description }: UpdateTodoPropsI) => {
+
+export const UpdateTodo = async ({ id, name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue }: UpdateTodoPropsI) => {
   const data: Prisma.TodoUpdateInput = {
-    title,
-    description
+    name,
+    task,
+    transferPhoneNumber,
+    aiVoice,
+    metadataKey,
+    metadataValue
   };
 
   try {
     await prisma.todo.update({
-      where: {
-        id
-      },
+      where: { id },
       data
     });
   } catch (err) {
     PrismaDBError(err);
   }
 };
+
 
 export const DeleteTodo = async ({ id }: DeleteTodoPropsI) => {
   try {

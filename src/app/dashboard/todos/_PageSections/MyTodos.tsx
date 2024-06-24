@@ -21,7 +21,7 @@ interface MyTodosProps {
 const TodoCard = ({ todo }: TodoCardProps) => {
   const router = useRouter();
 
-  const { id, title, description } = todo;
+  const { id, name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue } = todo;
 
   const Delete = async () => {
     const todo_id = Number(id);
@@ -39,10 +39,14 @@ const TodoCard = ({ todo }: TodoCardProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardTitle>{name}</CardTitle>
+        <CardDescription>{task}</CardDescription>
       </CardHeader>
       <CardContent>
+        <div><strong>Transfer Phone Number:</strong> {transferPhoneNumber}</div>
+        <div><strong>AI Voice:</strong> {aiVoice}</div>
+        <div><strong>Metadata Key:</strong> {metadataKey}</div>
+        <div><strong>Metadata Value:</strong> {metadataValue}</div>
         <Link
           href={`/dashboard/todos/edit/${id}`}
           className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'mr-6')}
