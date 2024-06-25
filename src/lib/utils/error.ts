@@ -27,3 +27,9 @@ export const StripeWebhookError = (err: Error) => {
     throw err;
   }
 };
+
+export const BlandAIError = (err: any) => {
+  console.error('Bland AI Error:', err);
+  throw new Error(`Bland AI API call failed: ${err.message}`);
+};
+
