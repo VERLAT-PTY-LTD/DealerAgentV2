@@ -27,6 +27,7 @@ export const todoFormSchema = z.object({
     message: "Schedule Time must be a future date",
   }),
   isActive: z.boolean(),
+  
 });
 
 export const DisplayNameFormSchema = z.object({

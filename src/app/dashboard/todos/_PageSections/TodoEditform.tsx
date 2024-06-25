@@ -10,15 +10,22 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Icons } from '@/components/Icons';
 import { UpdateTodo } from '@/lib/API/Database/todos/mutations';
+import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
 import { toast } from 'react-toastify';
 import config from '@/lib/config/api';
 import { useRouter } from 'next/navigation';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Switch } from '@/components/ui/Switch';
+import { useEffect, useState } from 'react';
 
 export default function TodosEditForm({ todo }) {
   const router = useRouter();
+  const [datasets, setDatasets] = useState([]);
+  const [selectedDatasets, setSelectedDatasets] = useState(
+    Array.isArray(todo.datasets) ? todo.datasets.map(dataset => dataset.id) : []
+  );
+
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
@@ -37,8 +44,18 @@ export default function TodosEditForm({ todo }) {
     reset,
     register,
     control,
-    formState: { isSubmitting }
+    formState: { isSubmitting },
+    handleSubmit,
   } = form;
+
+  useEffect(() => {
+    const fetchDatasets = async () => {
+      const fetchedDatasets = await getAllKnowledgeDatasets();
+      setDatasets(fetchedDatasets);
+    };
+
+    fetchDatasets();
+  }, []);
 
   const onSubmit = async (values: todoFormValues) => {
     const {
@@ -61,18 +78,18 @@ export default function TodosEditForm({ todo }) {
       metadataKey,
       metadataValue,
       scheduleTime,
-      isActive
+      isActive,
+      datasetIds: selectedDatasets,
     };
 
     try {
       await UpdateTodo(props);
+      toast.success('Todo Updated');
+      router.push('/dashboard/todos');
     } catch (err) {
       toast.error(config.errorMessageGeneral);
       throw err;
     }
-
-    toast.success('Todo Updated');
-    router.push('/dashboard/todos');
   };
 
   return (
@@ -85,7 +102,7 @@ export default function TodosEditForm({ todo }) {
 
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Existing Fields */}
               <FormField
                 control={control}
@@ -193,7 +210,6 @@ export default function TodosEditForm({ todo }) {
                   </FormItem>
                 )}
               />
-              {/* New Fields */}
               <FormField
                 control={control}
                 name="scheduleTime"
@@ -232,6 +248,25 @@ export default function TodosEditForm({ todo }) {
                   </FormItem>
                 )}
               />
+              <div>
+                <FormLabel>Select Datasets</FormLabel>
+                <FormControl>
+                  <select
+                    multiple
+                    value={selectedDatasets}
+                    onChange={(e) =>
+                      setSelectedDatasets(Array.from(e.target.selectedOptions, option => option.value))
+                    }
+                    className="bg-background-light dark:bg-background-dark w-full"
+                  >
+                    {datasets.map(dataset => (
+                      <option key={dataset.id} value={dataset.id}>
+                        {dataset.title}
+                      </option>
+                    ))}
+                  </select>
+                </FormControl>
+              </div>
               <Button disabled={isSubmitting} className="w-full">
                 {isSubmitting && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}Update
               </Button>

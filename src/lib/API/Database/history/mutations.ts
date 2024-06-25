@@ -4,39 +4,36 @@ import prisma from '../../Services/init/prisma';
 import { GetUser } from '@/lib/API/Database/user/queries';
 import { PrismaDBError } from '@/lib/utils/error';
 
-export const getKnowledgeDatasetById = async (id) => {
+export const createCall = async (data) => {
   try {
     const user = await GetUser();
     if (!user) {
       throw new Error('User not authenticated');
     }
 
-    const dataset = await prisma.knowledgeDataset.findUnique({
-      where: {
-        id,
+    const call = await prisma.call.create({
+      data: {
+        customerName: data.customerName,
+        recording: data.recording,
+        transcript: data.transcript,
+        todoId: data.todoId,
+        dateTime: data.dateTime,
+        duration: data.duration,
         userId: user.id,
       },
     });
-    return dataset;
+    return call;
   } catch (err) {
     PrismaDBError(err);
     throw err;
   }
 };
 
-export const getAllKnowledgeDatasets = async () => {
+export const deleteCall = async (id) => {
   try {
-    const user = await GetUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    const datasets = await prisma.knowledgeDataset.findMany({
-      where: {
-        userId: user.id,
-      },
+    await prisma.call.delete({
+      where: { id },
     });
-    return datasets;
   } catch (err) {
     PrismaDBError(err);
     throw err;

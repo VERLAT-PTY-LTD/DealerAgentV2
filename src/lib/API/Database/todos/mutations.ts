@@ -13,11 +13,14 @@ interface DeleteTodoPropsI {
   id: number;
 }
 
-export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue, scheduleTime, isActive }: todoFormValues) => {
+export const CreateTodo = async (data: todoFormValues & { datasetIds: string[] }) => {
+  const { name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue, scheduleTime, isActive, datasetIds } = data;
+  
   const user = await GetUser();
   const user_id = user?.id;
   const author = user?.display_name || '';
-  const data: Prisma.TodoCreateInput = {
+
+  const todoData: Prisma.TodoCreateInput = {
     name,
     task,
     transferPhoneNumber,
@@ -27,21 +30,23 @@ export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, met
     scheduleTime: new Date(scheduleTime), // Ensure correct format
     isActive,
     user: { connect: { id: user_id } },
-    author
+    author,
+    datasets: {
+      connect: datasetIds.map(id => ({ id })),
+    },
   };
 
   try {
-    await prisma.todo.create({ data });
+    await prisma.todo.create({ data: todoData });
   } catch (err) {
     PrismaDBError(err);
   }
 };
 
+export const UpdateTodo = async (data: UpdateTodoPropsI & { datasetIds: string[] }) => {
+  const { id, name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue, scheduleTime, isActive, datasetIds } = data;
 
-
-
-export const UpdateTodo = async ({ id, name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue, scheduleTime, isActive }: UpdateTodoPropsI) => {
-  const data: Prisma.TodoUpdateInput = {
+  const todoData: Prisma.TodoUpdateInput = {
     name,
     task,
     transferPhoneNumber,
@@ -50,12 +55,15 @@ export const UpdateTodo = async ({ id, name, task, transferPhoneNumber, aiVoice,
     metadataValue,
     scheduleTime: new Date(scheduleTime), // Ensure correct format
     isActive,
+    datasets: {
+      set: datasetIds.map(id => ({ id })),
+    },
   };
 
   try {
     await prisma.todo.update({
       where: { id },
-      data
+      data: todoData,
     });
   } catch (err) {
     PrismaDBError(err);
@@ -66,8 +74,8 @@ export const DeleteTodo = async ({ id }: DeleteTodoPropsI) => {
   try {
     await prisma.todo.delete({
       where: {
-        id
-      }
+        id,
+      },
     });
   } catch (err) {
     PrismaDBError(err);

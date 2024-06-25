@@ -5,8 +5,9 @@ const configuration = {
   routes: [
     { title: 'Overview', link: '/dashboard/main', icon: Icons.Home },
     { title: 'Todos', link: '/dashboard/todos/create', icon: Icons.Laptop },
-    { title: 'Knowledge', link: '/dashboard/knowledge', icon: Icons.Bot },
+    { title: 'Knowledge', link: '/dashboard/knowledge', icon: Icons.Command },
     { title: 'Playground', link: '/dashboard/ai', icon: Icons.Bot },
+    { title: 'History', link: '/dashboard/history', icon: Icons.Check },
     { title: 'Settings', link: '/dashboard/settings/profile', icon: Icons.Settings }
   ],
   subroutes: {

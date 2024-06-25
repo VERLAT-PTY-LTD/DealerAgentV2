@@ -1,8 +1,9 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { todoFormSchema, todoFormValues } from '@/lib/types/validations';
-import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/Form';
 import { Input } from '@/components/ui/Input';
@@ -10,15 +11,17 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Icons } from '@/components/Icons';
 import { CreateTodo } from '@/lib/API/Database/todos/mutations';
+import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
 import { toast } from 'react-toastify';
-import config from '@/lib/config/api';
 import { useRouter } from 'next/navigation';
-import DatePicker from 'react-datepicker'; // Importing react-datepicker
-import 'react-datepicker/dist/react-datepicker.css'; // Importing react-datepicker CSS
-import { Switch } from '@/components/ui/Switch'; // Assuming you have a Switch component
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Switch } from '@/components/ui/Switch';
 
 export default function TodosCreateForm() {
   const router = useRouter();
+  const [datasets, setDatasets] = useState([]);
+  const [selectedDatasets, setSelectedDatasets] = useState([]);
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
@@ -30,58 +33,40 @@ export default function TodosCreateForm() {
       metadataValue: '',
       scheduleTime: new Date(),
       isActive: false,
-    }
+    },
   });
 
   const {
     reset,
     register,
     control,
-    formState: { isSubmitting }
+    handleSubmit,
+    formState: { isSubmitting },
   } = form;
 
-  const onSubmit = async (values: todoFormValues) => {
-    const {
-      name,
-      task,
-      transferPhoneNumber,
-      aiVoice,
-      metadataKey,
-      metadataValue,
-      scheduleTime,
-      isActive
-    } = values;
-    
-    const props = {
-      name,
-      task,
-      transferPhoneNumber,
-      aiVoice,
-      metadataKey,
-      metadataValue,
-      scheduleTime,
-      isActive
+  useEffect(() => {
+    const fetchDatasets = async () => {
+      const fetchedDatasets = await getAllKnowledgeDatasets();
+      setDatasets(fetchedDatasets);
     };
 
-    try {
-      await CreateTodo(props);
-    } catch (err) {
-      toast.error(config.errorMessageGeneral);
-      throw err;
-    }
+    fetchDatasets();
+  }, []);
 
-    reset({
-      name: '',
-      task: '',
-      transferPhoneNumber: '',
-      aiVoice: '',
-      metadataKey: '',
-      metadataValue: '',
-      scheduleTime: new Date(),
-      isActive: false,
-    });
-    toast.success('Todo Submitted');
-    router.refresh();
+  const onSubmit = async (values: todoFormValues) => {
+    try {
+      const newTodo = await CreateTodo({
+        ...values,
+        datasetIds: selectedDatasets,
+      });
+      toast.success('Todo Created Successfully!');
+      router.refresh();
+    } catch (error) {
+      toast.error('Error creating todo');
+      console.error('Error creating todo:', error);
+    } finally {
+      reset();
+    }
   };
 
   return (
@@ -94,8 +79,7 @@ export default function TodosCreateForm() {
 
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* Existing Fields */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={control}
                 name="name"
@@ -104,10 +88,9 @@ export default function TodosCreateForm() {
                     <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('name')}
+                        {...field}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -122,8 +105,8 @@ export default function TodosCreateForm() {
                     <FormLabel>Task</FormLabel>
                     <FormControl>
                       <Textarea
-                        className="bg-background-light dark:bg-background-dark"
                         {...field}
+                        className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
                     <FormMessage />
@@ -138,10 +121,9 @@ export default function TodosCreateForm() {
                     <FormLabel>Transfer Phone Number</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('transferPhoneNumber')}
+                        {...field}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -156,10 +138,9 @@ export default function TodosCreateForm() {
                     <FormLabel>AI Voice</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('aiVoice')}
+                        {...field}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -174,10 +155,9 @@ export default function TodosCreateForm() {
                     <FormLabel>Metadata Key</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('metadataKey')}
+                        {...field}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -192,17 +172,15 @@ export default function TodosCreateForm() {
                     <FormLabel>Metadata Value</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('metadataValue')}
+                        {...field}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {/* New Fields */}
               <FormField
                 control={control}
                 name="scheduleTime"
@@ -241,6 +219,25 @@ export default function TodosCreateForm() {
                   </FormItem>
                 )}
               />
+              <div>
+                <FormLabel>Select Datasets</FormLabel>
+                <FormControl>
+                  <select
+                    multiple
+                    value={selectedDatasets}
+                    onChange={(e) =>
+                      setSelectedDatasets(Array.from(e.target.selectedOptions, option => option.value))
+                    }
+                    className="bg-background-light dark:bg-background-dark w-full"
+                  >
+                    {datasets.map(dataset => (
+                      <option key={dataset.id} value={dataset.id}>
+                        {dataset.title}
+                      </option>
+                    ))}
+                  </select>
+                </FormControl>
+              </div>
               <Button disabled={isSubmitting} className="w-full">
                 {isSubmitting && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}Submit
               </Button>

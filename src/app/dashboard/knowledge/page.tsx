@@ -5,17 +5,23 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Textarea } from '@/components/ui/Textarea';
 
+import { createKnowledgeDataset, deleteKnowledgeDataset } from '@/lib/API/Database/knowledge/mutations';
+import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
+
 export default function KnowledgeDatasetPage() {
   const [datasets, setDatasets] = useState([]);
   const [inputTitle, setInputTitle] = useState('');
   const [inputType, setInputType] = useState('');
   const [inputData, setInputData] = useState('');
+  // const [inputMetadata, setInputMetadata] = useState('{}');
+  // const [metadataError, setMetadataError] = useState('');
 
   useEffect(() => {
-    // Fetch existing datasets on mount
-    fetch('/api/knowledge-datasets')
-      .then(response => response.json())
-      .then(data => setDatasets(data));
+    const fetchData = async () => {
+      const allDatasets = await getAllKnowledgeDatasets();
+      setDatasets(allDatasets);
+    };
+    fetchData();
   }, []);
 
   const handleTitleChange = (event) => {
@@ -30,41 +36,32 @@ export default function KnowledgeDatasetPage() {
     setInputData(event.target.value);
   };
 
+
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (inputTitle && inputType && inputData) {
-      const newDataset = { title: inputTitle, type: inputType, content: inputData };
-      try {
-        const response = await fetch('/api/knowledge-datasets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newDataset),
-        });
-        if (response.ok) {
-          const createdDataset = await response.json();
-          setDatasets([...datasets, createdDataset]);
-          setInputTitle('');
-          setInputType('');
-          setInputData('');
-        } else {
-          console.error('Failed to create dataset');
-        }
-      } catch (error) {
-        console.error('Error creating dataset:', error);
-      }
+
+    const newDataset = {
+      title: inputTitle,
+      type: inputType,
+      content: inputData,
+    };
+
+    try {
+      const createdDataset = await createKnowledgeDataset(newDataset);
+      setDatasets([...datasets, createdDataset]);
+      setInputTitle('');
+      setInputType('');
+      setInputData('');
+    } catch (error) {
+      console.error('Error creating dataset:', error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/knowledge-datasets/${id}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        setDatasets(datasets.filter(dataset => dataset.id !== id));
-      } else {
-        console.error('Failed to delete dataset');
-      }
+      await deleteKnowledgeDataset(id);
+      setDatasets(datasets.filter(dataset => dataset.id !== id));
     } catch (error) {
       console.error('Error deleting dataset:', error);
     }
@@ -102,6 +99,7 @@ export default function KnowledgeDatasetPage() {
               value={inputData}
               onChange={handleInputChange}
             />
+            
             <Button type="submit">Add Dataset</Button>
           </form>
         </div>
