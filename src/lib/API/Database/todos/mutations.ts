@@ -13,7 +13,7 @@ interface DeleteTodoPropsI {
   id: number;
 }
 
-export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue }: todoFormValues) => {
+export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue, scheduleTime, isActive }: todoFormValues) => {
   const user = await GetUser();
   const user_id = user?.id;
   const author = user?.display_name || '';
@@ -24,6 +24,8 @@ export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, met
     aiVoice,
     metadataKey,
     metadataValue,
+    scheduleTime: new Date(scheduleTime), // Ensure correct format
+    isActive,
     user: { connect: { id: user_id } },
     author
   };
@@ -36,14 +38,18 @@ export const CreateTodo = async ({ name, task, transferPhoneNumber, aiVoice, met
 };
 
 
-export const UpdateTodo = async ({ id, name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue }: UpdateTodoPropsI) => {
+
+
+export const UpdateTodo = async ({ id, name, task, transferPhoneNumber, aiVoice, metadataKey, metadataValue, scheduleTime, isActive }: UpdateTodoPropsI) => {
   const data: Prisma.TodoUpdateInput = {
     name,
     task,
     transferPhoneNumber,
     aiVoice,
     metadataKey,
-    metadataValue
+    metadataValue,
+    scheduleTime: new Date(scheduleTime), // Ensure correct format
+    isActive,
   };
 
   try {
@@ -55,7 +61,6 @@ export const UpdateTodo = async ({ id, name, task, transferPhoneNumber, aiVoice,
     PrismaDBError(err);
   }
 };
-
 
 export const DeleteTodo = async ({ id }: DeleteTodoPropsI) => {
   try {

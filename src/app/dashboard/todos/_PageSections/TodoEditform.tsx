@@ -1,8 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-
 import { todoFormSchema, todoFormValues } from '@/lib/types/validations';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
@@ -13,43 +11,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/Icons';
 import { UpdateTodo } from '@/lib/API/Database/todos/mutations';
 import { toast } from 'react-toastify';
-import { Todo } from '@prisma/client';
 import config from '@/lib/config/api';
-import configuration from '@/lib/config/auth';
-interface EditFormProps {
-  todo: {
-    id: number;
-    name: string;
-    task: string;
-    transferPhoneNumber: string;
-    aiVoice: string;
-    metadataKey: string;
-    metadataValue: string;
-    user_id: string;
-    author: string;
-  };
-}
+import { useRouter } from 'next/navigation';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Switch } from '@/components/ui/Switch';
 
-export default function TodosEditForm({ todo }: EditFormProps) {
+export default function TodosEditForm({ todo }) {
   const router = useRouter();
-  const { name, task, id } = todo;
-
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
-      name: '',
-      task: '',
-      transferPhoneNumber: '',
-      aiVoice: '',
-      metadataKey: '',
-      metadataValue: '',
+      name: todo.name,
+      task: todo.task,
+      transferPhoneNumber: todo.transferPhoneNumber,
+      aiVoice: todo.aiVoice,
+      metadataKey: todo.metadataKey,
+      metadataValue: todo.metadataValue,
+      scheduleTime: new Date(todo.scheduleTime),
+      isActive: todo.isActive,
     }
   });
 
   const {
-    register,
     reset,
-    formState: { isSubmitting, isSubmitted }
+    register,
+    control,
+    formState: { isSubmitting }
   } = form;
 
   const onSubmit = async (values: todoFormValues) => {
@@ -59,18 +47,21 @@ export default function TodosEditForm({ todo }: EditFormProps) {
       transferPhoneNumber,
       aiVoice,
       metadataKey,
-      metadataValue
+      metadataValue,
+      scheduleTime,
+      isActive
     } = values;
     
-    const todo_id = Number(id);
     const props = {
-      id: todo_id,
+      id: todo.id,
       name,
       task,
       transferPhoneNumber,
       aiVoice,
       metadataKey,
-      metadataValue
+      metadataValue,
+      scheduleTime,
+      isActive
     };
 
     try {
@@ -80,49 +71,42 @@ export default function TodosEditForm({ todo }: EditFormProps) {
       throw err;
     }
 
-    reset({
-      name: '',
-      task: '',
-      transferPhoneNumber: '',
-      aiVoice: '',
-      metadataKey: '',
-      metadataValue: '',
-    });
     toast.success('Todo Updated');
-    router.refresh();
-    router.push(configuration.redirects.toMyTodos);
+    router.push('/dashboard/todos');
   };
 
   return (
     <div>
       <Card className="bg-background-light dark:bg-background-dark">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Update Todo</CardTitle>
-          <CardDescription>Update Todo with campaign details</CardDescription>
+          <CardTitle className="text-2xl">Edit Todo</CardTitle>
+          <CardDescription>Edit the details of your Todo</CardDescription>
         </CardHeader>
 
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              {/* Existing Fields */}
               <FormField
-                control={form.control}
+                control={control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormMessage />
                     <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input
                         {...register('name')}
+                        type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
-                control={form.control}
+                control={control}
                 name="task"
                 render={({ field }) => (
                   <FormItem>
@@ -138,7 +122,7 @@ export default function TodosEditForm({ todo }: EditFormProps) {
                 )}
               />
               <FormField
-                control={form.control}
+                control={control}
                 name="transferPhoneNumber"
                 render={({ field }) => (
                   <FormItem>
@@ -146,15 +130,17 @@ export default function TodosEditForm({ todo }: EditFormProps) {
                     <FormControl>
                       <Input
                         {...register('transferPhoneNumber')}
+                        type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
-                control={form.control}
+                control={control}
                 name="aiVoice"
                 render={({ field }) => (
                   <FormItem>
@@ -162,15 +148,17 @@ export default function TodosEditForm({ todo }: EditFormProps) {
                     <FormControl>
                       <Input
                         {...register('aiVoice')}
+                        type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
-                control={form.control}
+                control={control}
                 name="metadataKey"
                 render={({ field }) => (
                   <FormItem>
@@ -178,15 +166,17 @@ export default function TodosEditForm({ todo }: EditFormProps) {
                     <FormControl>
                       <Input
                         {...register('metadataKey')}
+                        type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
-                control={form.control}
+                control={control}
                 name="metadataValue"
                 render={({ field }) => (
                   <FormItem>
@@ -194,15 +184,56 @@ export default function TodosEditForm({ todo }: EditFormProps) {
                     <FormControl>
                       <Input
                         {...register('metadataValue')}
+                        type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button disabled={isSubmitting || isSubmitted} className="w-full">
-                {isSubmitting && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}Submit
+              {/* New Fields */}
+              <FormField
+                control={control}
+                name="scheduleTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Schedule Time</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        selected={field.value}
+                        onChange={field.onChange}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        dateFormat="MMMM d, yyyy h:mm aa"
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Active</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button disabled={isSubmitting} className="w-full">
+                {isSubmitting && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}Update
               </Button>
             </form>
           </Form>

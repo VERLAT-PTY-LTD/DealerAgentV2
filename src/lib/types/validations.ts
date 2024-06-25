@@ -15,6 +15,7 @@ import * as z from 'zod';
 //   })
 // });
 
+
 export const todoFormSchema = z.object({
   name: z.string().nonempty("Name is required"),
   task: z.string().nonempty("Task is required"),
@@ -22,6 +23,10 @@ export const todoFormSchema = z.object({
   aiVoice: z.string().nonempty("AI Voice is required"),
   metadataKey: z.string().nonempty("Metadata Key is required"),
   metadataValue: z.string().nonempty("Metadata Value is required"),
+  scheduleTime: z.date().refine((date) => date >= new Date(), {
+    message: "Schedule Time must be a future date",
+  }),
+  isActive: z.boolean(),
 });
 
 export const DisplayNameFormSchema = z.object({

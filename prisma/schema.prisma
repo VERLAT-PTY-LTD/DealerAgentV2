@@ -51,6 +51,7 @@ model User {
   subscription_id    String?
   todo               Todo[]
   subscription       Subscription? @relation(fields: [subscription_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  knowledgeDatasets  KnowledgeDataset[]
 
   @@map(name: "users")
 }
@@ -76,12 +77,14 @@ model Subscription {
 
 model Todo {
   id                 Int      @id @default(autoincrement())
-  name               String   // Changed from title
-  task               String   // Changed from description
+  name               String
+  task               String
   transferPhoneNumber String
   aiVoice            String
   metadataKey        String
   metadataValue      String
+  scheduleTime       DateTime
+  isActive           Boolean
   user_id            String?
   author             String?
   user               User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -89,4 +92,13 @@ model Todo {
   @@map(name: "todos")
 }
 
+model KnowledgeDataset {
+  id       String   @id @default(cuid())
+  title    String
+  type     String
+  content  String   @db.Text
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@map(name: "knowledge_datasets")
+}
