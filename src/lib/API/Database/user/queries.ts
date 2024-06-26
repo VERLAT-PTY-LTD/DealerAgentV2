@@ -1,3 +1,4 @@
+'use server'
 import { User } from '@prisma/client';
 import { GetSession } from '../../Services/auth/session';
 import prisma from '../../Services/init/prisma';

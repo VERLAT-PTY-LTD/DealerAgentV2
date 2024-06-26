@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Icons } from '@/components/Icons';
-import { CreateTodo } from '@/lib/API/Database/todos/mutations';
+import { CreateTodo, ActivateTodo } from '@/lib/API/Database/todos/mutations';
 import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,7 @@ export default function TodosCreateForm() {
   const router = useRouter();
   const [datasets, setDatasets] = useState([]);
   const [selectedDatasets, setSelectedDatasets] = useState([]);
+  const [createdTodoId, setCreatedTodoId] = useState<number | null>(null); // State to store the created Todo ID
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
@@ -29,19 +30,35 @@ export default function TodosCreateForm() {
       task: '',
       transferPhoneNumber: '',
       aiVoice: '',
-      metadataKey: '',
-      metadataValue: '',
-      scheduleTime: new Date(),
+      scheduleTime: new Date(new Date().getTime() + 5 * 60000), // 5 minutes into the future
       isActive: false,
+      model: 'default_model',
+      language: 'en',
+      localDialing: false,
+      maxDuration: 12,
+      answeredByEnabled: false,
+      waitForGreeting: false,
+      record: false,
+      amd: false,
+      interruptionThreshold: 100,
+      voicemailMessage: '',
+      temperature: 0.7,
+      transferList: '{}',
+      metadata: '{}',
+      pronunciationGuide: '[]',
+      startTime: null,
+      requestData: '{}',
+      tools: '[]',
+      webhook: '',
+      calendly: '{}',
     },
   });
 
   const {
     reset,
-    register,
     control,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = form;
 
   useEffect(() => {
@@ -54,11 +71,23 @@ export default function TodosCreateForm() {
   }, []);
 
   const onSubmit = async (values: todoFormValues) => {
+    console.log('Submitted values:', values);
+    const processedValues = {
+      ...values,
+      transferList: JSON.parse(values.transferList || '{}'),
+      metadata: JSON.parse(values.metadata || '{}'),
+      pronunciationGuide: JSON.parse(values.pronunciationGuide || '[]'),
+      requestData: JSON.parse(values.requestData || '{}'),
+      tools: JSON.parse(values.tools || '[]'),
+      calendly: JSON.parse(values.calendly || '{}'),
+    };
+
     try {
       const newTodo = await CreateTodo({
-        ...values,
+        ...processedValues,
         datasetIds: selectedDatasets,
       });
+      setCreatedTodoId(newTodo.id); // Store the created Todo ID
       toast.success('Todo Created Successfully!');
       router.refresh();
     } catch (error) {
@@ -69,6 +98,21 @@ export default function TodosCreateForm() {
     }
   };
 
+  const onActivate = async (todoId: number) => {
+    try {
+      await ActivateTodo({ id: todoId });
+      toast.success('Todo Activated Successfully!');
+      router.refresh();
+    } catch (error) {
+      toast.error('Error activating todo');
+      console.error('Error activating todo:', error);
+    }
+  };
+
+  const onError = (errors: any) => {
+    console.error('Validation errors:', errors);
+  };
+
   return (
     <div>
       <Card className="bg-background-light dark:bg-background-dark">
@@ -76,10 +120,9 @@ export default function TodosCreateForm() {
           <CardTitle className="text-2xl">New Todo</CardTitle>
           <CardDescription>Create a Todo with campaign details</CardDescription>
         </CardHeader>
-
         <CardContent>
           <Form {...form}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-8">
               <FormField
                 control={control}
                 name="name"
@@ -93,7 +136,7 @@ export default function TodosCreateForm() {
                         className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.name?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -109,7 +152,7 @@ export default function TodosCreateForm() {
                         className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.task?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -126,7 +169,7 @@ export default function TodosCreateForm() {
                         className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.transferPhoneNumber?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -143,16 +186,16 @@ export default function TodosCreateForm() {
                         className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.aiVoice?.message}</FormMessage>
                   </FormItem>
                 )}
               />
               <FormField
                 control={control}
-                name="metadataKey"
+                name="model"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Metadata Key</FormLabel>
+                    <FormLabel>Model</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -160,16 +203,16 @@ export default function TodosCreateForm() {
                         className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.model?.message}</FormMessage>
                   </FormItem>
                 )}
               />
               <FormField
                 control={control}
-                name="metadataValue"
+                name="language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Metadata Value</FormLabel>
+                    <FormLabel>Language</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -177,7 +220,142 @@ export default function TodosCreateForm() {
                         className="bg-background-light dark:bg-background-dark"
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.language?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="localDialing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Local Dialing</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.localDialing?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="maxDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Duration</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.maxDuration?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="answeredByEnabled"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Answered By Enabled</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.answeredByEnabled?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="waitForGreeting"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Wait For Greeting</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.waitForGreeting?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="record"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Record</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.record?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="amd"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AMD</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.amd?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="interruptionThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Interruption Threshold</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.interruptionThreshold?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="voicemailMessage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Voicemail Message</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage>{errors.voicemailMessage?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -188,34 +366,21 @@ export default function TodosCreateForm() {
                   <FormItem>
                     <FormLabel>Schedule Time</FormLabel>
                     <FormControl>
-                      <DatePicker
-                        selected={field.value}
-                        onChange={field.onChange}
-                        showTimeSelect
-                        timeFormat="HH:mm"
-                        timeIntervals={15}
-                        dateFormat="MMMM d, yyyy h:mm aa"
-                        className="bg-background-light dark:bg-background-dark"
+                      <Controller
+                        control={control}
+                        name="scheduleTime"
+                        render={({ field }) => (
+                          <DatePicker
+                            selected={field.value}
+                            onChange={field.onChange}
+                            showTimeSelect
+                            dateFormat="Pp"
+                            className="bg-background-light dark:bg-background-dark"
+                          />
+                        )}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Active</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onChange={field.onChange}
-                        className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage />
+                    <FormMessage>{errors.scheduleTime?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -238,9 +403,19 @@ export default function TodosCreateForm() {
                   </select>
                 </FormControl>
               </div>
-              <Button disabled={isSubmitting} className="w-full">
+              <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}Submit
               </Button>
+              {createdTodoId && (
+                <Button
+                  type="button"
+                  onClick={() => onActivate(createdTodoId)}
+                  disabled={isSubmitting}
+                  className="w-full mt-4"
+                >
+                  Start Now
+                </Button>
+              )}
             </form>
           </Form>
         </CardContent>

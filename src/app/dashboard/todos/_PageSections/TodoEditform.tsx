@@ -33,8 +33,25 @@ export default function TodosEditForm({ todo }) {
       task: todo.task,
       transferPhoneNumber: todo.transferPhoneNumber,
       aiVoice: todo.aiVoice,
-      metadataKey: todo.metadataKey,
-      metadataValue: todo.metadataValue,
+      model: todo.model,
+      language: todo.language,
+      localDialing: todo.localDialing,
+      maxDuration: todo.maxDuration,
+      answeredByEnabled: todo.answeredByEnabled,
+      waitForGreeting: todo.waitForGreeting,
+      record: todo.record,
+      amd: todo.amd,
+      interruptionThreshold: todo.interruptionThreshold,
+      voicemailMessage: todo.voicemailMessage,
+      temperature: todo.temperature,
+      transferList: JSON.stringify(todo.transferList),
+      metadata: JSON.stringify(todo.metadata),
+      pronunciationGuide: JSON.stringify(todo.pronunciationGuide),
+      startTime: todo.startTime ? new Date(todo.startTime) : null,
+      requestData: JSON.stringify(todo.requestData),
+      tools: JSON.stringify(todo.tools),
+      webhook: todo.webhook,
+      calendly: JSON.stringify(todo.calendly),
       scheduleTime: new Date(todo.scheduleTime),
       isActive: todo.isActive,
     }
@@ -58,27 +75,19 @@ export default function TodosEditForm({ todo }) {
   }, []);
 
   const onSubmit = async (values: todoFormValues) => {
-    const {
-      name,
-      task,
-      transferPhoneNumber,
-      aiVoice,
-      metadataKey,
-      metadataValue,
-      scheduleTime,
-      isActive
-    } = values;
-    
+    const processedValues = {
+      ...values,
+      transferList: JSON.parse(values.transferList || '{}'),
+      metadata: JSON.parse(values.metadata || '{}'),
+      pronunciationGuide: JSON.parse(values.pronunciationGuide || '[]'),
+      requestData: JSON.parse(values.requestData || '{}'),
+      tools: JSON.parse(values.tools || '[]'),
+      calendly: JSON.parse(values.calendly || '{}'),
+    };
+
     const props = {
       id: todo.id,
-      name,
-      task,
-      transferPhoneNumber,
-      aiVoice,
-      metadataKey,
-      metadataValue,
-      scheduleTime,
-      isActive,
+      ...processedValues,
       datasetIds: selectedDatasets,
     };
 
@@ -103,7 +112,6 @@ export default function TodosEditForm({ todo }) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-              {/* Existing Fields */}
               <FormField
                 control={control}
                 name="name"
@@ -176,13 +184,13 @@ export default function TodosEditForm({ todo }) {
               />
               <FormField
                 control={control}
-                name="metadataKey"
+                name="model"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Metadata Key</FormLabel>
+                    <FormLabel>Model</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('metadataKey')}
+                        {...register('model')}
                         type="text"
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
@@ -194,14 +202,152 @@ export default function TodosEditForm({ todo }) {
               />
               <FormField
                 control={control}
-                name="metadataValue"
+                name="language"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Metadata Value</FormLabel>
+                    <FormLabel>Language</FormLabel>
                     <FormControl>
                       <Input
-                        {...register('metadataValue')}
+                        {...register('language')}
                         type="text"
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="localDialing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Local Dialing</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="maxDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Duration</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('maxDuration')}
+                        type="number"
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="answeredByEnabled"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Answered By Enabled</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="waitForGreeting"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Wait For Greeting</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="record"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Record</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="amd"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>AMD</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="bg-background-light dark:bg-background-dark"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="interruptionThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Interruption Threshold</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...register('interruptionThreshold')}
+                        type="number"
+                        className="bg-background-light dark:bg-background-dark"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="voicemailMessage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Voicemail Message</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...register('voicemailMessage')}
                         className="bg-background-light dark:bg-background-dark"
                         {...field}
                       />

@@ -89,30 +89,47 @@ model Call {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model Todo {
-  id                 Int      @id @default(autoincrement())
-  name               String
-  task               String
-  transferPhoneNumber String
-  aiVoice            String
-  metadataKey        String
-  metadataValue      String
-  scheduleTime       DateTime
-  isActive           Boolean
-  user_id            String?
-  author             String?
-  user               User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  datasets           KnowledgeDataset[] @relation("TodoDatasets")
-  calls              Call[]
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  task                  String
+  transferPhoneNumber   String
+  aiVoice               String
+  model                 String                 @default("default_model")
+  language              String                 @default("en")
+  voiceSettings         Json                   @default("{}")  // Ensure this aligns with your application's default
+  localDialing          Boolean                @default(false)
+  maxDuration           Int                    @default(12)
+  answeredByEnabled     Boolean                @default(false)
+  waitForGreeting       Boolean                @default(false)
+  record                Boolean                @default(false)
+  amd                   Boolean                @default(false)
+  interruptionThreshold Int                    @default(100)
+  voicemailMessage      String?                @default("")
+  temperature           Float?                 @default(0.7)
+  transferList          Json                   @default("{}")
+  metadata              Json                   @default("{}")
+  pronunciationGuide    Json                   @default("[]")
+  startTime             DateTime?
+  requestData           Json                   @default("{}")
+  tools                 Json                   @default("[]")
+  webhook               String?                @default("")
+  calendly              Json                   @default("{}")
+  scheduleTime          DateTime               // Ensure this is set correctly when creating a Todo
+  isActive              Boolean
+  user_id               String?
+  author                String?
+  user                  User?                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  datasets              KnowledgeDataset[]     @relation("TodoDatasets")
+  calls                 Call[]
 }
 
 model KnowledgeDataset {
-  id       String   @id @default(cuid())
+  id       String        @id @default(cuid())
   title    String
   type     String
-  content  String   @db.Text
+  content  String        @db.Text
   userId   String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  todos    Todo[]   @relation("TodoDatasets")
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  todos    Todo[]        @relation("TodoDatasets")
 }
