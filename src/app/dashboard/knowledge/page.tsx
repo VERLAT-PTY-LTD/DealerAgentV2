@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Textarea } from '@/components/ui/Textarea';
 import { createKnowledgeDataset, deleteKnowledgeDataset } from '@/lib/API/Database/knowledge/mutations';
-import { getAllKnowledgeDatasets,getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
-import { createCustomerCallList, deleteCustomerCallList } from '@/lib/API/Database/knowledge/mutations'; // Update the import paths accordingly
+import { getAllKnowledgeDatasets, getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
+import { createCustomerCallList, deleteCustomerCallList } from '@/lib/API/Database/knowledge/mutations';
 
 export default function KnowledgeDatasetPage() {
   const [datasets, setDatasets] = useState([]);
@@ -26,26 +26,6 @@ export default function KnowledgeDatasetPage() {
     };
     fetchData();
   }, []);
-
-  const handleTitleChange = (event) => {
-    setInputTitle(event.target.value);
-  };
-
-  const handleTypeChange = (event) => {
-    setInputType(event.target.value);
-  };
-
-  const handleInputChange = (event) => {
-    setInputData(event.target.value);
-  };
-
-  const handleCustomerNameChange = (event) => {
-    setCustomerName(event.target.value);
-  };
-
-  const handleCustomerPhoneChange = (event) => {
-    setCustomerPhone(event.target.value);
-  };
 
   const handleSubmitDataset = async (event) => {
     event.preventDefault();
@@ -114,12 +94,12 @@ export default function KnowledgeDatasetPage() {
               placeholder="Title"
               className="w-full mb-4 p-2 border"
               value={inputTitle}
-              onChange={handleTitleChange}
+              onChange={(e) => setInputTitle(e.target.value)}
             />
             <select
               className="w-full mb-4 p-2 border"
               value={inputType}
-              onChange={handleTypeChange}
+              onChange={(e) => setInputType(e.target.value)}
             >
               <option value="" disabled>Select Dataset Type</option>
               <option value="vehicleDetails">Vehicle Details</option>
@@ -130,7 +110,7 @@ export default function KnowledgeDatasetPage() {
               placeholder="Enter dataset content"
               className="min-h-[18rem] mb-4"
               value={inputData}
-              onChange={handleInputChange}
+              onChange={(e) => setInputData(e.target.value)}
             />
             <Button type="submit">Add Dataset</Button>
           </form>
@@ -143,14 +123,14 @@ export default function KnowledgeDatasetPage() {
               placeholder="Customer Name"
               className="w-full mb-4 p-2 border"
               value={customerName}
-              onChange={handleCustomerNameChange}
+              onChange={(e) => setCustomerName(e.target.value)}
             />
             <input
               type="text"
               placeholder="Customer Phone"
               className="w-full mb-4 p-2 border"
               value={customerPhone}
-              onChange={handleCustomerPhoneChange}
+              onChange={(e) => setCustomerPhone(e.target.value)}
             />
             <Button type="submit">Add to Call List</Button>
           </form>

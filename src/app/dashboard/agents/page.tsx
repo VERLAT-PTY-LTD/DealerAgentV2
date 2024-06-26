@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
-import { createAgent, deleteAgent, listAgents } from '@/lib/API/Services/blandAi/blandai';
-import { listVoices } from '@/lib/API/Services/blandAi/blandai';
+import { createAgent, deleteAgent, listAgents, listVoices } from '@/lib/API/Services/blandAi/blandai';
 import { Textarea } from '@/components/ui/Textarea';
 
 export default function AgentPage() {
@@ -19,7 +18,6 @@ export default function AgentPage() {
     const fetchAgents = async () => {
       try {
         const allAgents = await listAgents();
-        console.log('Agents fetched from BlandAI:', allAgents);
         setAgents(allAgents);
       } catch (error) {
         console.error('Error fetching agents:', error);
@@ -39,11 +37,6 @@ export default function AgentPage() {
     fetchVoices();
   }, []);
 
-  const handleAgentNameChange = (event) => setAgentName(event.target.value);
-  const handleAgentPromptChange = (event) => setAgentPrompt(event.target.value);
-  const handleAgentVoiceChange = (event) => setAgentVoice(event.target.value);
-  const handleFirstSentenceChange = (event) => setFirstSentence(event.target.value);
-
   const handleSubmitAgent = async (event) => {
     event.preventDefault();
     const newAgent = {
@@ -55,12 +48,10 @@ export default function AgentPage() {
 
     try {
       const createdAgent = await createAgent(newAgent);
-      console.log('Agent created:', createdAgent);
-
-      // Fetch agents again to update the UI
       const updatedAgents = await listAgents();
       setAgents(updatedAgents);
 
+      // Reset form fields
       setAgentName('');
       setAgentPrompt('');
       setAgentVoice('');
@@ -92,31 +83,29 @@ export default function AgentPage() {
               placeholder="Agent Name"
               className="w-full mb-4 p-2 border"
               value={agentName}
-              onChange={handleAgentNameChange}
+              onChange={(e) => setAgentName(e.target.value)}
             />
             <Textarea
               placeholder="Enter agent prompt"
               className="min-h-[18rem] mb-4"
               value={agentPrompt}
-              onChange={handleAgentPromptChange}
+              onChange={(e) => setAgentPrompt(e.target.value)}
             />
             <input
               type="text"
               placeholder="First Sentence"
               className="w-full mb-4 p-2 border"
               value={firstSentence}
-              onChange={handleFirstSentenceChange}
+              onChange={(e) => setFirstSentence(e.target.value)}
             />
             <select
               className="w-full mb-4 p-2 border"
               value={agentVoice}
-              onChange={handleAgentVoiceChange}
+              onChange={(e) => setAgentVoice(e.target.value)}
             >
               <option value="" disabled>Select Voice</option>
               {voices.map((voice) => (
-                <option key={voice.id} value={voice.id}>
-                  {voice.name}
-                </option>
+                <option key={voice.id} value={voice.id}>{voice.name}</option>
               ))}
             </select>
             <Button type="submit">Add Agent</Button>

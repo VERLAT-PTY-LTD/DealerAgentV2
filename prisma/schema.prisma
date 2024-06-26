@@ -91,6 +91,7 @@ model Call {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+
 model Todo {
   id                    Int                    @id @default(autoincrement())
   name                  String
@@ -125,9 +126,27 @@ model Todo {
   calls                 Call[]
   agentId               String?                // Make the new field optional initially
   agent                 Agent?                 @relation(fields: [agentId], references: [id])
+  customerCallListId    String?                // New field for the relation
+  customerCallList      CustomerCallList?      @relation("TodoCustomerCallList", fields: [customerCallListId], references: [id], onDelete: SetNull) // Add onDelete behavior
+}
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+  callList  CustomerCallList @relation(fields: [callListId], references: [id])
+  callListId String
 }
 
-
+model CustomerCallList {
+  id        String     @id @default(cuid())
+  name      String
+  createdAt DateTime   @default(now())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customers Customer[] @relation
+  todos     Todo[]     @relation("TodoCustomerCallList")
+}
 
 model KnowledgeDataset {
   id       String        @id @default(cuid())
@@ -137,15 +156,6 @@ model KnowledgeDataset {
   userId   String
   user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   todos    Todo[]        @relation("TodoDatasets")
-}
-
-model CustomerCallList {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String
-  createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Agent {

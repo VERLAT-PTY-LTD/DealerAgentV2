@@ -1,5 +1,4 @@
 'use server'
-
 import prisma, { Prisma } from '../../Services/init/prisma';
 import { GetUser } from '@/lib/API/Database/user/queries';
 import { PrismaDBError } from '@/lib/utils/error';
@@ -18,21 +17,20 @@ interface ActivateTodoPropsI {
   id: number;
 }
 
-export const CreateTodo = async (data: todoFormValues & { datasetIds: string[] }) => {
+export const CreateTodo = async (data: todoFormValues & { datasetIds: string[], customerCallList: string, agentId: string }) => {
   const {
-    name, task, transferPhoneNumber, aiVoice, scheduleTime, isActive, datasetIds,
+    name, transferPhoneNumber, aiVoice, scheduleTime, isActive, datasetIds,
     model, language, localDialing, maxDuration, answeredByEnabled, waitForGreeting,
     record, amd, interruptionThreshold, voicemailMessage, transferList, metadata,
-    pronunciationGuide, startTime, requestData, tools, webhook, calendly
+    pronunciationGuide, startTime, requestData, tools, webhook, calendly, customerCallList, agentId
   } = data;
-  
+
   const user = await GetUser();
   const user_id = user?.id;
   const author = user?.display_name || '';
 
   const todoData: Prisma.TodoCreateInput = {
     name,
-    task,
     transferPhoneNumber,
     aiVoice,
     scheduleTime: new Date(scheduleTime), // Ensure correct format
@@ -50,14 +48,16 @@ export const CreateTodo = async (data: todoFormValues & { datasetIds: string[] }
     interruptionThreshold,
     voicemailMessage,
     temperature: 0.5, // Set default value
-    transferList, // Already an object
-    metadata, // Already an object
-    pronunciationGuide, // Already an object
+    transferList: transferList || {}, // Use empty object if undefined
+    metadata: metadata || {}, // Use empty object if undefined
+    pronunciationGuide: pronunciationGuide || [], // Use empty array if undefined
     startTime,
-    requestData, // Already an object
-    tools, // Already an object
+    requestData: requestData || {}, // Use empty object if undefined
+    tools: tools || [], // Use empty array if undefined
     webhook,
-    calendly, // Already an object
+    calendly: calendly || {}, // Use empty object if undefined
+    customerCallList: { connect: { id: customerCallList } }, // Correctly connect customer call list
+    agent: { connect: { id: agentId } }, // Correctly connect agent
     datasets: {
       connect: datasetIds.map(id => ({ id })),
     },
@@ -77,52 +77,63 @@ export const ActivateTodo = async ({ id }: ActivateTodoPropsI) => {
     const todo = await prisma.todo.update({
       where: { id },
       data: { isActive: true },
+      include: {
+        customerCallList: {
+          include: { customers: true }
+        },
+        agent: true // Include the agent details
+      }
     });
 
-    await callBlandAI({
-      phoneNumber: todo.transferPhoneNumber,
-      task: todo.task,
-      model: todo.model,
-      language: todo.language,
-      voice: todo.aiVoice,
-      localDialing: todo.localDialing,
-      maxDuration: todo.maxDuration,
-      answeredByEnabled: todo.answeredByEnabled,
-      waitForGreeting: todo.waitForGreeting,
-      record: todo.record,
-      amd: todo.amd,
-      interruptionThreshold: todo.interruptionThreshold,
-      voicemailMessage: todo.voicemailMessage,
-      temperature: todo.temperature,
-      transferList: todo.transferList,
-      metadata: todo.metadata,
-      pronunciationGuide: todo.pronunciationGuide,
-      startTime: todo.startTime,
-      requestData: todo.requestData,
-      tools: todo.tools,
-      webhook: todo.webhook,
-      calendly: todo.calendly,
-    });
+    if (!todo.customerCallList) {
+      throw new Error('Customer call list not found');
+    }
+
+    if (!todo.agent) {
+      throw new Error('Agent not found');
+    }
+
+    const callData = todo.customerCallList.customers.map(customer => ({
+      phone_number: customer.phone,
+      task: todo.agent.prompt, // Use the agent's prompt as the task
+      // Additional customer-specific data if needed
+    }));
+
+    const payload = {
+      base_prompt: todo.agent.prompt, // Use the agent's prompt as the base prompt
+      call_data: callData,
+      from: todo.transferPhoneNumber,
+      label: todo.name,
+      campaign_id: todo.id,
+      test_mode: false, // Set to true if testing
+    };
+
+    await callBlandAI(payload);
   } catch (err) {
     PrismaDBError(err);
   }
 };
 
-export const UpdateTodo = async (data: UpdateTodoPropsI & { datasetIds: string[] }) => {
+export const UpdateTodo = async (data: UpdateTodoPropsI & { datasetIds: string[], customerCallList: string, agentId: string }) => {
   const {
-    id, name, task, transferPhoneNumber, aiVoice, scheduleTime, isActive, datasetIds,
+    id, name, transferPhoneNumber, aiVoice, scheduleTime, isActive, datasetIds,
     model, language, localDialing, maxDuration, answeredByEnabled, waitForGreeting,
     record, amd, interruptionThreshold, voicemailMessage, transferList, metadata,
-    pronunciationGuide, startTime, requestData, tools, webhook, calendly
+    pronunciationGuide, startTime, requestData, tools, webhook, calendly, customerCallList, agentId
   } = data;
+
+  const user = await GetUser();
+  const user_id = user?.id;
+  const author = user?.display_name || '';
 
   const todoData: Prisma.TodoUpdateInput = {
     name,
-    task,
     transferPhoneNumber,
     aiVoice,
     scheduleTime: new Date(scheduleTime), // Ensure correct format
     isActive,
+    user: { connect: { id: user_id } },
+    author,
     model,
     language,
     localDialing,
@@ -134,14 +145,16 @@ export const UpdateTodo = async (data: UpdateTodoPropsI & { datasetIds: string[]
     interruptionThreshold,
     voicemailMessage,
     temperature: 0.5, // Set default value
-    transferList, // Already an object
-    metadata, // Already an object
-    pronunciationGuide, // Already an object
+    transferList: transferList || {}, // Use empty object if undefined
+    metadata: metadata || {}, // Use empty object if undefined
+    pronunciationGuide: pronunciationGuide || [], // Use empty array if undefined
     startTime,
-    requestData, // Already an object
-    tools, // Already an object
+    requestData: requestData || {}, // Use empty object if undefined
+    tools: tools || [], // Use empty array if undefined
     webhook,
-    calendly, // Already an object
+    calendly: calendly || {}, // Use empty object if undefined
+    customerCallList: { connect: { id: customerCallList } }, // Correctly connect customer call list
+    agent: { connect: { id: agentId } }, // Correctly connect agent
     datasets: {
       set: datasetIds.map(id => ({ id })),
     },

@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -11,18 +11,18 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Icons } from '@/components/Icons';
 import { CreateTodo, ActivateTodo } from '@/lib/API/Database/todos/mutations';
-import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
-import { getAllAgents } from '@/lib/API/Database/agents/queries'; // Adjust the import path as needed
+import { getAllKnowledgeDatasets, getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
+import { getAllAgents } from '@/lib/API/Database/agents/queries';
 import { listVoices } from '@/lib/API/Services/blandAi/blandai';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Switch } from '@/components/ui/Switch';
-
 export default function TodosCreateForm() {
   const router = useRouter();
   const [datasets, setDatasets] = useState([]);
+  const [callLists, setCallLists] = useState([]); // Add state for call lists
   const [agents, setAgents] = useState([]);
   const [voices, setVoices] = useState([]);
   const [selectedDatasets, setSelectedDatasets] = useState([]);
@@ -31,7 +31,7 @@ export default function TodosCreateForm() {
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
       name: '',
-      agentId: '', // Add agentId to default values
+      agentId: '',
       transferPhoneNumber: '',
       aiVoice: '',
       scheduleTime: new Date(new Date().getTime() + 5 * 60000),
@@ -55,6 +55,7 @@ export default function TodosCreateForm() {
       tools: '[]',
       webhook: '',
       calendly: '{}',
+      customerCallList: '' // Add field for customer call list
     },
   });
 
@@ -71,6 +72,8 @@ export default function TodosCreateForm() {
       setDatasets(fetchedDatasets);
       const fetchedAgents = await getAllAgents();
       setAgents(fetchedAgents);
+      const fetchedCallLists = await getAllCustomerCallLists(); // Fetch call lists
+      setCallLists(fetchedCallLists);
     };
 
     fetchDatasetsAndAgents();
@@ -87,8 +90,8 @@ export default function TodosCreateForm() {
     fetchVoices();
   }, []);
 
+
   const onSubmit = async (values: todoFormValues) => {
-    console.log('Submitted values:', values);
     const processedValues = {
       ...values,
       transferList: JSON.parse(values.transferList || '{}'),
@@ -97,8 +100,10 @@ export default function TodosCreateForm() {
       requestData: JSON.parse(values.requestData || '{}'),
       tools: JSON.parse(values.tools || '[]'),
       calendly: JSON.parse(values.calendly || '{}'),
+      customerCallList: values.customerCallList, // Ensure customer call list is included
+      agentId: values.agentId || '', // Ensure agentId is included
     };
-
+  
     try {
       const newTodo = await CreateTodo({
         ...processedValues,
@@ -114,6 +119,7 @@ export default function TodosCreateForm() {
       reset();
     }
   };
+  
 
   const onActivate = async (todoId: number) => {
     try {
@@ -217,6 +223,29 @@ export default function TodosCreateForm() {
                       </select>
                     </FormControl>
                     <FormMessage>{errors.aiVoice?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="customerCallList"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Customer Call List</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="bg-background-light dark:bg-background-dark w-full"
+                      >
+                        <option value="">Select a call list</option>
+                        {callLists.map(callList => (
+                          <option key={callList.id} value={callList.id}>
+                            {callList.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage>{errors.customerCallList?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -426,9 +455,7 @@ export default function TodosCreateForm() {
                     className="bg-background-light dark:bg-background-dark w-full"
                   >
                     {datasets.map(dataset => (
-                      <option key={dataset.id} value={dataset.id}>
-                        {dataset.title}
-                      </option>
+                      <option key={dataset.id} value={dataset.id}>{dataset.title}</option>
                     ))}
                   </select>
                 </FormControl>

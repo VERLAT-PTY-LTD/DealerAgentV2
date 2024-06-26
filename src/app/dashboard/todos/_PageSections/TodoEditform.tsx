@@ -2,15 +2,15 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { todoFormSchema, todoFormValues } from '@/lib/types/validations';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/Form';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Icons } from '@/components/Icons';
-import { UpdateTodo } from '@/lib/API/Database/todos/mutations';
-import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
+import { UpdateTodo, ActivateTodo } from '@/lib/API/Database/todos/mutations';
+import { getAllKnowledgeDatasets, getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries'; // Import getAllCustomerCallLists
 import { getAllAgents } from '@/lib/API/Database/agents/queries';
 import { listVoices } from '@/lib/API/Services/blandAi/blandai';
 import { toast } from 'react-toastify';
@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react';
 export default function TodosEditForm({ todo }) {
   const router = useRouter();
   const [datasets, setDatasets] = useState([]);
+  const [callLists, setCallLists] = useState([]); // Add state for call lists
   const [agents, setAgents] = useState([]);
   const [voices, setVoices] = useState([]);
   const [selectedDatasets, setSelectedDatasets] = useState(
@@ -58,6 +59,7 @@ export default function TodosEditForm({ todo }) {
       calendly: JSON.stringify(todo.calendly),
       scheduleTime: new Date(todo.scheduleTime),
       isActive: todo.isActive,
+      customerCallList: todo.customerCallList?.id || '' // Ensure customer call list ID is included
     }
   });
 
@@ -75,6 +77,8 @@ export default function TodosEditForm({ todo }) {
       setDatasets(fetchedDatasets);
       const fetchedAgents = await getAllAgents();
       setAgents(fetchedAgents);
+      const fetchedCallLists = await getAllCustomerCallLists(); // Fetch call lists
+      setCallLists(fetchedCallLists);
     };
 
     fetchDatasetsAndAgents();
@@ -100,14 +104,16 @@ export default function TodosEditForm({ todo }) {
       requestData: JSON.parse(values.requestData || '{}'),
       tools: JSON.parse(values.tools || '[]'),
       calendly: JSON.parse(values.calendly || '{}'),
+      customerCallList: values.customerCallList, // Ensure customer call list is included
+      agentId: values.agentId || '', // Ensure agentId is included
     };
-
+  
     const props = {
       id: todo.id,
       ...processedValues,
       datasetIds: selectedDatasets,
     };
-
+  
     try {
       await UpdateTodo(props);
       toast.success('Todo Updated');
@@ -115,6 +121,17 @@ export default function TodosEditForm({ todo }) {
     } catch (err) {
       toast.error(config.errorMessageGeneral);
       throw err;
+    }
+  };
+  
+  const onActivate = async (todoId: number) => {
+    try {
+      await ActivateTodo({ id: todoId });
+      toast.success('Todo Activated Successfully!');
+      router.refresh();
+    } catch (error) {
+      toast.error('Error activating todo');
+      console.error('Error activating todo:', error);
     }
   };
 
@@ -203,6 +220,29 @@ export default function TodosEditForm({ todo }) {
                         {voices.map(voice => (
                           <option key={voice.id} value={voice.id}>
                             {voice.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="customerCallList"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Customer Call List</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="bg-background-light dark:bg-background-dark w-full"
+                      >
+                        <option value="">Select a call list</option>
+                        {callLists.map(callList => (
+                          <option key={callList.id} value={callList.id}>
+                            {callList.name}
                           </option>
                         ))}
                       </select>
@@ -445,6 +485,16 @@ export default function TodosEditForm({ todo }) {
               <Button disabled={isSubmitting} className="w-full">
                 {isSubmitting && <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />}Update
               </Button>
+              {todo.id && (
+                <Button
+                  type="button"
+                  onClick={() => onActivate(todo.id)}
+                  disabled={isSubmitting}
+                  className="w-full mt-4"
+                >
+                  Start Now
+                </Button>
+              )}
             </form>
           </Form>
         </CardContent>

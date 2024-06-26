@@ -1,5 +1,4 @@
 'use client';
-
 import { z } from 'zod';
 
 export const todoFormSchema = z.object({
@@ -30,7 +29,9 @@ export const todoFormSchema = z.object({
   tools: z.string().optional().default('[]'),
   webhook: z.string().optional().nullable().default(''),
   calendly: z.string().optional().default('{}'),
+  customerCallList: z.string().nonempty("Customer Call List is required"), // Make it required
 });
+
 
 export const DisplayNameFormSchema = z.object({
   display_name: z
