@@ -61,11 +61,25 @@ export const createCustomerCallList = async (data) => {
       throw new Error('User not authenticated');
     }
 
+    if (!data.customerName || !data.customerPhone) {
+      throw new Error('Customer name and phone are required');
+    }
+
     const callList = await prisma.customerCallList.create({
       data: {
         name: data.name,
-        phone: data.phone,
         userId: user.id,
+        customers: {
+          create: [
+            {
+              name: data.customerName,
+              phone: data.customerPhone,
+            },
+          ],
+        },
+      },
+      include: {
+        customers: true,
       },
     });
     return callList;
@@ -79,6 +93,7 @@ export const deleteCustomerCallList = async (id) => {
   try {
     await prisma.customerCallList.delete({
       where: { id },
+      include: { customers: true, todos: true },
     });
   } catch (err) {
     PrismaDBError(err);

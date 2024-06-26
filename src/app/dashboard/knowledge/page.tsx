@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Textarea } from '@/components/ui/Textarea';
-import { createKnowledgeDataset, deleteKnowledgeDataset } from '@/lib/API/Database/knowledge/mutations';
+import { createKnowledgeDataset, deleteKnowledgeDataset, createCustomerCallList, deleteCustomerCallList } from '@/lib/API/Database/knowledge/mutations';
 import { getAllKnowledgeDatasets, getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
-import { createCustomerCallList, deleteCustomerCallList } from '@/lib/API/Database/knowledge/mutations';
 
 export default function KnowledgeDatasetPage() {
   const [datasets, setDatasets] = useState([]);
@@ -14,6 +13,7 @@ export default function KnowledgeDatasetPage() {
   const [inputTitle, setInputTitle] = useState('');
   const [inputType, setInputType] = useState('');
   const [inputData, setInputData] = useState('');
+  const [callListName, setCallListName] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
@@ -49,13 +49,15 @@ export default function KnowledgeDatasetPage() {
   const handleSubmitCallList = async (event) => {
     event.preventDefault();
     const newCallList = {
-      name: customerName,
-      phone: customerPhone,
+      name: callListName,
+      customerName,
+      customerPhone,
     };
 
     try {
       const createdCallList = await createCustomerCallList(newCallList);
       setCallLists([...callLists, createdCallList]);
+      setCallListName('');
       setCustomerName('');
       setCustomerPhone('');
     } catch (error) {
@@ -120,6 +122,13 @@ export default function KnowledgeDatasetPage() {
           <form onSubmit={handleSubmitCallList} className="h-full">
             <input
               type="text"
+              placeholder="Call List Name"
+              className="w-full mb-4 p-2 border"
+              value={callListName}
+              onChange={(e) => setCallListName(e.target.value)}
+            />
+            <input
+              type="text"
               placeholder="Customer Name"
               className="w-full mb-4 p-2 border"
               value={customerName}
@@ -162,7 +171,9 @@ export default function KnowledgeDatasetPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="font-bold">{callList.name}</h2>
-                    <p>{callList.phone}</p>
+                    {callList.customers && callList.customers.map((customer) => (
+                      <p key={customer.id}>{customer.name} - {customer.phone}</p>
+                    ))}
                   </div>
                   <Button variant="destructive" onClick={() => handleDeleteCallList(callList.id)}>
                     Delete
