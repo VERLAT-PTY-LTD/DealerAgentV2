@@ -4,22 +4,25 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Textarea } from '@/components/ui/Textarea';
-
 import { createKnowledgeDataset, deleteKnowledgeDataset } from '@/lib/API/Database/knowledge/mutations';
-import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
+import { getAllKnowledgeDatasets,getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
+import { createCustomerCallList, deleteCustomerCallList } from '@/lib/API/Database/knowledge/mutations'; // Update the import paths accordingly
 
 export default function KnowledgeDatasetPage() {
   const [datasets, setDatasets] = useState([]);
+  const [callLists, setCallLists] = useState([]);
   const [inputTitle, setInputTitle] = useState('');
   const [inputType, setInputType] = useState('');
   const [inputData, setInputData] = useState('');
-  // const [inputMetadata, setInputMetadata] = useState('{}');
-  // const [metadataError, setMetadataError] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       const allDatasets = await getAllKnowledgeDatasets();
+      const allCallLists = await getAllCustomerCallLists();
       setDatasets(allDatasets);
+      setCallLists(allCallLists);
     };
     fetchData();
   }, []);
@@ -36,11 +39,16 @@ export default function KnowledgeDatasetPage() {
     setInputData(event.target.value);
   };
 
+  const handleCustomerNameChange = (event) => {
+    setCustomerName(event.target.value);
+  };
 
+  const handleCustomerPhoneChange = (event) => {
+    setCustomerPhone(event.target.value);
+  };
 
-  const handleSubmit = async (event) => {
+  const handleSubmitDataset = async (event) => {
     event.preventDefault();
-
     const newDataset = {
       title: inputTitle,
       type: inputType,
@@ -58,12 +66,38 @@ export default function KnowledgeDatasetPage() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleSubmitCallList = async (event) => {
+    event.preventDefault();
+    const newCallList = {
+      name: customerName,
+      phone: customerPhone,
+    };
+
+    try {
+      const createdCallList = await createCustomerCallList(newCallList);
+      setCallLists([...callLists, createdCallList]);
+      setCustomerName('');
+      setCustomerPhone('');
+    } catch (error) {
+      console.error('Error creating call list:', error);
+    }
+  };
+
+  const handleDeleteDataset = async (id) => {
     try {
       await deleteKnowledgeDataset(id);
       setDatasets(datasets.filter(dataset => dataset.id !== id));
     } catch (error) {
       console.error('Error deleting dataset:', error);
+    }
+  };
+
+  const handleDeleteCallList = async (id) => {
+    try {
+      await deleteCustomerCallList(id);
+      setCallLists(callLists.filter(callList => callList.id !== id));
+    } catch (error) {
+      console.error('Error deleting call list:', error);
     }
   };
 
@@ -74,7 +108,7 @@ export default function KnowledgeDatasetPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight mb-2">Add New Dataset:</h1>
-          <form onSubmit={handleSubmit} className="h-full">
+          <form onSubmit={handleSubmitDataset} className="h-full">
             <input
               type="text"
               placeholder="Title"
@@ -88,7 +122,6 @@ export default function KnowledgeDatasetPage() {
               onChange={handleTypeChange}
             >
               <option value="" disabled>Select Dataset Type</option>
-              <option value="customerCallList">Customer Call List</option>
               <option value="vehicleDetails">Vehicle Details</option>
               <option value="demonstratorDetails">Demonstrator Details</option>
               <option value="serviceSpecials">Service Specials</option>
@@ -99,8 +132,27 @@ export default function KnowledgeDatasetPage() {
               value={inputData}
               onChange={handleInputChange}
             />
-            
             <Button type="submit">Add Dataset</Button>
+          </form>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight mb-2">Add Customer Call List:</h1>
+          <form onSubmit={handleSubmitCallList} className="h-full">
+            <input
+              type="text"
+              placeholder="Customer Name"
+              className="w-full mb-4 p-2 border"
+              value={customerName}
+              onChange={handleCustomerNameChange}
+            />
+            <input
+              type="text"
+              placeholder="Customer Phone"
+              className="w-full mb-4 p-2 border"
+              value={customerPhone}
+              onChange={handleCustomerPhoneChange}
+            />
+            <Button type="submit">Add to Call List</Button>
           </form>
         </div>
         <div className="col-span-2">
@@ -113,13 +165,32 @@ export default function KnowledgeDatasetPage() {
                     <h2 className="font-bold">{dataset.title} ({dataset.type})</h2>
                     <pre>{dataset.content}</pre>
                   </div>
-                  <Button variant="destructive" onClick={() => handleDelete(dataset.id)}>
+                  <Button variant="destructive" onClick={() => handleDeleteDataset(dataset.id)}>
                     Delete
                   </Button>
                 </div>
               </div>
             ))}
             {datasets.length === 0 && <p>No datasets added yet.</p>}
+          </div>
+        </div>
+        <div className="col-span-2">
+          <h1 className="text-xl font-bold tracking-tight mb-2">Customer Call Lists:</h1>
+          <div className="space-y-4">
+            {callLists.map((callList) => (
+              <div key={callList.id} className="rounded-md border bg-muted p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="font-bold">{callList.name}</h2>
+                    <p>{callList.phone}</p>
+                  </div>
+                  <Button variant="destructive" onClick={() => handleDeleteCallList(callList.id)}>
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {callLists.length === 0 && <p>No call lists added yet.</p>}
           </div>
         </div>
       </div>

@@ -53,3 +53,35 @@ export const deleteKnowledgeDataset = async (id) => {
     throw err;
   }
 };
+
+export const createCustomerCallList = async (data) => {
+  try {
+    const user = await GetUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const callList = await prisma.customerCallList.create({
+      data: {
+        name: data.name,
+        phone: data.phone,
+        userId: user.id,
+      },
+    });
+    return callList;
+  } catch (err) {
+    PrismaDBError(err);
+    throw err;
+  }
+};
+
+export const deleteCustomerCallList = async (id) => {
+  try {
+    await prisma.customerCallList.delete({
+      where: { id },
+    });
+  } catch (err) {
+    PrismaDBError(err);
+    throw err;
+  }
+};

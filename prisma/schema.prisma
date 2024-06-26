@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -39,20 +38,21 @@ model Session {
 }
 
 model User {
-  id                 String        @id @default(cuid())
+  id                 String              @id @default(cuid())
   name               String?
-  email              String?       @unique
+  email              String?             @unique
   emailVerified      DateTime?
   image              String?
   accounts           Account[]
   sessions           Session[]
-  stripe_customer_id String?       @unique @db.VarChar
-  display_name       String?       @db.VarChar
+  stripe_customer_id String?             @unique @db.VarChar
+  display_name       String?             @db.VarChar
   subscription_id    String?
   todo               Todo[]
   calls              Call[]
-  subscription       Subscription? @relation(fields: [subscription_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  subscription       Subscription?       @relation(fields: [subscription_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   knowledgeDatasets  KnowledgeDataset[]
+  customerCallLists  CustomerCallList[]  // Add this line to create the opposite relation
 
   @@map(name: "users")
 }
@@ -97,7 +97,7 @@ model Todo {
   aiVoice               String
   model                 String                 @default("default_model")
   language              String                 @default("en")
-  voiceSettings         Json                   @default("{}")  // Ensure this aligns with your application's default
+  voiceSettings         Json                   @default("{}")
   localDialing          Boolean                @default(false)
   maxDuration           Int                    @default(12)
   answeredByEnabled     Boolean                @default(false)
@@ -115,7 +115,7 @@ model Todo {
   tools                 Json                   @default("[]")
   webhook               String?                @default("")
   calendly              Json                   @default("{}")
-  scheduleTime          DateTime               // Ensure this is set correctly when creating a Todo
+  scheduleTime          DateTime
   isActive              Boolean
   user_id               String?
   author                String?
@@ -132,4 +132,13 @@ model KnowledgeDataset {
   userId   String
   user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   todos    Todo[]        @relation("TodoDatasets")
+}
+
+model CustomerCallList {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

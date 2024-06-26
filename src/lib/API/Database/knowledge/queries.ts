@@ -42,3 +42,42 @@ export const getAllKnowledgeDatasets = async () => {
     throw err;
   }
 };
+
+export const getCustomerCallListById = async (id) => {
+  try {
+    const user = await GetUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const callList = await prisma.customerCallList.findUnique({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+    return callList;
+  } catch (err) {
+    PrismaDBError(err);
+    throw err;
+  }
+};
+
+export const getAllCustomerCallLists = async () => {
+  try {
+    const user = await GetUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const callLists = await prisma.customerCallList.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+    return callLists;
+  } catch (err) {
+    PrismaDBError(err);
+    throw err;
+  }
+};
