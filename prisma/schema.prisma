@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -7,6 +7,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -93,7 +94,6 @@ model Call {
 model Todo {
   id                    Int                    @id @default(autoincrement())
   name                  String
-  task                  String
   transferPhoneNumber   String
   aiVoice               String
   model                 String                 @default("default_model")
@@ -123,7 +123,11 @@ model Todo {
   user                  User?                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   datasets              KnowledgeDataset[]     @relation("TodoDatasets")
   calls                 Call[]
+  agentId               String?                // Make the new field optional initially
+  agent                 Agent?                 @relation(fields: [agentId], references: [id])
 }
+
+
 
 model KnowledgeDataset {
   id       String        @id @default(cuid())
@@ -156,4 +160,5 @@ model Agent {
   max_duration          Int       @default(12)
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserAgents")
+  todos                 Todo[]
 }

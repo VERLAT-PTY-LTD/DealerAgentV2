@@ -1,10 +1,10 @@
 'use client';
 
-import * as z from 'zod';
+import { z } from 'zod';
 
 export const todoFormSchema = z.object({
   name: z.string().nonempty("Name is required"),
-  task: z.string().nonempty("Task is required"),
+  agentId: z.string().nonempty("Agent selection is required"),
   transferPhoneNumber: z.string().nonempty("Transfer Phone Number is required"),
   aiVoice: z.string().nonempty("AI Voice is required"),
   scheduleTime: z.date().refine(date => date >= new Date(), {
@@ -31,8 +31,6 @@ export const todoFormSchema = z.object({
   webhook: z.string().optional().nullable().default(''),
   calendly: z.string().optional().default('{}'),
 });
-
-
 
 export const DisplayNameFormSchema = z.object({
   display_name: z

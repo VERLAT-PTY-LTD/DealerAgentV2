@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/Icons';
 import { UpdateTodo } from '@/lib/API/Database/todos/mutations';
 import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
+import { getAllAgents } from '@/lib/API/Database/agents/queries';
+import { listVoices } from '@/lib/API/Services/blandAi/blandai';
 import { toast } from 'react-toastify';
 import config from '@/lib/config/api';
 import { useRouter } from 'next/navigation';
@@ -22,6 +24,8 @@ import { useEffect, useState } from 'react';
 export default function TodosEditForm({ todo }) {
   const router = useRouter();
   const [datasets, setDatasets] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [voices, setVoices] = useState([]);
   const [selectedDatasets, setSelectedDatasets] = useState(
     Array.isArray(todo.datasets) ? todo.datasets.map(dataset => dataset.id) : []
   );
@@ -30,7 +34,7 @@ export default function TodosEditForm({ todo }) {
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
       name: todo.name,
-      task: todo.task,
+      agentId: todo.agentId,
       transferPhoneNumber: todo.transferPhoneNumber,
       aiVoice: todo.aiVoice,
       model: todo.model,
@@ -66,12 +70,25 @@ export default function TodosEditForm({ todo }) {
   } = form;
 
   useEffect(() => {
-    const fetchDatasets = async () => {
+    const fetchDatasetsAndAgents = async () => {
       const fetchedDatasets = await getAllKnowledgeDatasets();
       setDatasets(fetchedDatasets);
+      const fetchedAgents = await getAllAgents();
+      setAgents(fetchedAgents);
     };
 
-    fetchDatasets();
+    fetchDatasetsAndAgents();
+
+    const fetchVoices = async () => {
+      try {
+        const allVoices = await listVoices();
+        setVoices(allVoices);
+      } catch (error) {
+        console.error('Error fetching voices:', error);
+      }
+    };
+
+    fetchVoices();
   }, []);
 
   const onSubmit = async (values: todoFormValues) => {
@@ -132,15 +149,22 @@ export default function TodosEditForm({ todo }) {
               />
               <FormField
                 control={control}
-                name="task"
+                name="agentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Task</FormLabel>
+                    <FormLabel>Select Agent</FormLabel>
                     <FormControl>
-                      <Textarea
-                        className="bg-background-light dark:bg-background-dark"
+                      <select
                         {...field}
-                      />
+                        className="bg-background-light dark:bg-background-dark w-full"
+                      >
+                        <option value="">Select an agent</option>
+                        {agents.map(agent => (
+                          <option key={agent.id} value={agent.id}>
+                            {agent.name}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,12 +195,17 @@ export default function TodosEditForm({ todo }) {
                   <FormItem>
                     <FormLabel>AI Voice</FormLabel>
                     <FormControl>
-                      <Input
-                        {...register('aiVoice')}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
+                      <select
                         {...field}
-                      />
+                        className="bg-background-light dark:bg-background-dark w-full"
+                      >
+                        <option value="">Select a voice</option>
+                        {voices.map(voice => (
+                          <option key={voice.id} value={voice.id}>
+                            {voice.name}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

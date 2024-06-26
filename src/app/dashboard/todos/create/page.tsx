@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/Icons';
 import { CreateTodo, ActivateTodo } from '@/lib/API/Database/todos/mutations';
 import { getAllKnowledgeDatasets } from '@/lib/API/Database/knowledge/queries';
+import { getAllAgents } from '@/lib/API/Database/agents/queries'; // Adjust the import path as needed
+import { listVoices } from '@/lib/API/Services/blandAi/blandai';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import DatePicker from 'react-datepicker';
@@ -21,18 +23,20 @@ import { Switch } from '@/components/ui/Switch';
 export default function TodosCreateForm() {
   const router = useRouter();
   const [datasets, setDatasets] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [voices, setVoices] = useState([]);
   const [selectedDatasets, setSelectedDatasets] = useState([]);
-  const [createdTodoId, setCreatedTodoId] = useState<number | null>(null); // State to store the created Todo ID
+  const [createdTodoId, setCreatedTodoId] = useState<number | null>(null);
   const form = useForm<todoFormValues>({
     resolver: zodResolver(todoFormSchema),
     defaultValues: {
       name: '',
-      task: '',
+      agentId: '', // Add agentId to default values
       transferPhoneNumber: '',
       aiVoice: '',
-      scheduleTime: new Date(new Date().getTime() + 5 * 60000), // 5 minutes into the future
+      scheduleTime: new Date(new Date().getTime() + 5 * 60000),
       isActive: false,
-      model: 'default_model',
+      model: 'base',
       language: 'en',
       localDialing: false,
       maxDuration: 12,
@@ -62,12 +66,25 @@ export default function TodosCreateForm() {
   } = form;
 
   useEffect(() => {
-    const fetchDatasets = async () => {
+    const fetchDatasetsAndAgents = async () => {
       const fetchedDatasets = await getAllKnowledgeDatasets();
       setDatasets(fetchedDatasets);
+      const fetchedAgents = await getAllAgents();
+      setAgents(fetchedAgents);
     };
 
-    fetchDatasets();
+    fetchDatasetsAndAgents();
+
+    const fetchVoices = async () => {
+      try {
+        const allVoices = await listVoices();
+        setVoices(allVoices);
+      } catch (error) {
+        console.error('Error fetching voices:', error);
+      }
+    };
+
+    fetchVoices();
   }, []);
 
   const onSubmit = async (values: todoFormValues) => {
@@ -87,7 +104,7 @@ export default function TodosCreateForm() {
         ...processedValues,
         datasetIds: selectedDatasets,
       });
-      setCreatedTodoId(newTodo.id); // Store the created Todo ID
+      setCreatedTodoId(newTodo.id);
       toast.success('Todo Created Successfully!');
       router.refresh();
     } catch (error) {
@@ -142,17 +159,24 @@ export default function TodosCreateForm() {
               />
               <FormField
                 control={control}
-                name="task"
+                name="agentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Task</FormLabel>
+                    <FormLabel>Select Agent</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <select
                         {...field}
-                        className="bg-background-light dark:bg-background-dark"
-                      />
+                        className="bg-background-light dark:bg-background-dark w-full"
+                      >
+                        <option value="">Select an agent</option>
+                        {agents.map(agent => (
+                          <option key={agent.id} value={agent.id}>
+                            {agent.name}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
-                    <FormMessage>{errors.task?.message}</FormMessage>
+                    <FormMessage>{errors.agentId?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -180,11 +204,17 @@ export default function TodosCreateForm() {
                   <FormItem>
                     <FormLabel>AI Voice</FormLabel>
                     <FormControl>
-                      <Input
+                      <select
                         {...field}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                      />
+                        className="bg-background-light dark:bg-background-dark w-full"
+                      >
+                        <option value="">Select a voice</option>
+                        {voices.map(voice => (
+                          <option key={voice.id} value={voice.id}>
+                            {voice.name}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage>{errors.aiVoice?.message}</FormMessage>
                   </FormItem>
