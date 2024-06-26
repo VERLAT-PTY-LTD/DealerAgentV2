@@ -52,7 +52,8 @@ model User {
   calls              Call[]
   subscription       Subscription?       @relation(fields: [subscription_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   knowledgeDatasets  KnowledgeDataset[]
-  customerCallLists  CustomerCallList[]  // Add this line to create the opposite relation
+  customerCallLists  CustomerCallList[]
+  agents             Agent[]             @relation("UserAgents")
 
   @@map(name: "users")
 }
@@ -141,4 +142,18 @@ model CustomerCallList {
   createdAt DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Agent {
+  id                    String    @id @default(cuid())
+  name                  String
+  prompt                String
+  voice                 String
+  language              String    @default("en")
+  model                 String    @default("default_model")
+  first_sentence        String
+  interruption_threshold Int      @default(100)
+  max_duration          Int       @default(12)
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserAgents")
 }
