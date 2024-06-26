@@ -74,6 +74,9 @@ export const getAllCustomerCallLists = async () => {
       where: {
         userId: user.id,
       },
+      include: {
+        customers: true,
+      },
     });
     return callLists;
   } catch (err) {

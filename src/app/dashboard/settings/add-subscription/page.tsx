@@ -15,8 +15,9 @@ const AddSubscription = () => {
 
   const { products } = configuration;
 
-  const basic: ProductI = products[0];
-  const premium: ProductI = products[1];
+  const base: ProductI = products[0];
+  const medium: ProductI = products[1];
+  const platinum: ProductI = products[2];
 
   const router = useRouter();
 
@@ -35,7 +36,7 @@ const AddSubscription = () => {
   };
 
   return (
-    <div className=" flex flex-col">
+    <div className="flex flex-col">
       <h4 className="text-xl font-bold">Add Subscription</h4>
       <p className="text-sm font-medium text-muted-foreground mt-2 mb-4">
         Add a Subscription by choosing a plan below
@@ -47,14 +48,19 @@ const AddSubscription = () => {
         <div className="text-sm font-bold ml-3">Yearly</div>
       </div>
 
-      <div className="grid grid-cols-1 space-x-0 lg:space-x-4 lg:grid-cols-2 ">
+      <div className="grid grid-cols-1 space-x-0 lg:space-x-4 lg:grid-cols-3">
         <PriceCard
-          product={basic}
+          product={base}
           handleSubscription={handleSubscription}
           timeInterval={timeInterval}
         />
         <PriceCard
-          product={premium}
+          product={medium}
+          handleSubscription={handleSubscription}
+          timeInterval={timeInterval}
+        />
+        <PriceCard
+          product={platinum}
           handleSubscription={handleSubscription}
           timeInterval={timeInterval}
         />

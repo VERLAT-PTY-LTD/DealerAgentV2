@@ -25,48 +25,86 @@ const configuration = {
   },
   products: [
     {
-      name: 'Basic',
-      description: 'Best for hobby or individual Projects',
-      features: ['Unlimited Posts', '10 Users', '1000 API requests', 'Email Support'],
+      name: 'Base',
+      description: 'Ideal for small dealerships or individual use',
+      features: [
+        'Limit of 200 calls per month',
+        'Comprehensive Call Reports',
+        'Customizable Call Scripts',
+        'Email Support',
+        'Each call is 29 cents per minute'
+      ],
       plans: [
         {
-          name: 'Basic Monthly',
+          name: 'Base Monthly',
           interval: IntervalE.MONTHLY,
-          price: '10',
-          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BASIC_MONTHLY,
+          price: '799',
+          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BASE_MONTHLY,
           isPopular: true
         },
         {
-          name: 'Basic Annual',
+          name: 'Base Annual',
           interval: IntervalE.YEARLY,
-          price: '100',
-          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BASIC_YEARLY,
+          price: '7990',
+          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BASE_ANNUAL,
           isPopular: false
         }
       ]
     },
     {
-      name: 'Pro',
-      description: 'Best for Teams or organizations',
+      name: 'Medium Size',
+      description: 'Perfect for medium-sized dealerships',
       features: [
-        'Unlimited Posts',
-        'Unlimited Users',
-        'Unlimited API Requests',
-        'Priority Support'
+        'Up to 500 calls per month',
+        'Comprehensive Call Reports',
+        'Customizable Call Scripts',
+        'Integration with CRM systems',
+        'Priority Email Support',
+        'Each call is 29 cents per minute',
+        'Purchase a phone number'
       ],
       plans: [
         {
-          name: 'Pro Monthly',
+          name: 'Medium Monthly',
           interval: IntervalE.MONTHLY,
-          price: '20',
-          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PREMIUM_MONTHLY,
+          price: '1299',
+          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MEDIUM_MONTHLY,
           isPopular: false
         },
         {
-          name: 'Pro Annual',
+          name: 'Medium Annual',
           interval: IntervalE.YEARLY,
-          price: '200',
-          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PREMIUM_YEARLY,
+          price: '12990',
+          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MEDIUM_ANNUAL,
+          isPopular: false
+        }
+      ]
+    },
+    {
+      name: 'Platinum',
+      description: 'Best for large dealerships',
+      features: [
+        'Up to 1000 calls per month',
+        'Comprehensive Call Reports',
+        'Customizable Call Scripts',
+        'Integration with CRM systems',
+        'Phone and Email Support',
+        'Each call is 29 cents per minute',
+        'Purchase a phone number'
+      ],
+      plans: [
+        {
+          name: 'Platinum Monthly',
+          interval: IntervalE.MONTHLY,
+          price: '1999',
+          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PLATINUM_MONTHLY,
+          isPopular: false
+        },
+        {
+          name: 'Platinum Annual',
+          interval: IntervalE.YEARLY,
+          price: '19990',
+          price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PLATINUM_ANNUAL,
           isPopular: false
         }
       ]

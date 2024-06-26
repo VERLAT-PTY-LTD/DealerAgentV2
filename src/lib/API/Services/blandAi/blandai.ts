@@ -6,6 +6,13 @@ import { BlandAIError } from '@/lib/utils/error';
 
 // Define functions for each API endpoint
 
+const getAuthHeadersWithCallId = (callId) => ({
+  'Authorization': `Bearer ${process.env.BLAND_AI_API_KEY}`,
+  'Content-Type': 'application/json',
+  'Path': callId
+});
+
+
 const getAuthHeaders = () => ({
   'Authorization': `${process.env.BLAND_AI_API_KEY}`,
   'Content-Type': 'application/json'
@@ -83,27 +90,35 @@ export const getRecording = async (callId) => {
   }
 };
 
-export const correctCall = async (callId) => {
-  try {
-    const headers = getAuthHeaders();
-    console.log(`Fetching corrected transcript for call ID: ${callId} with headers:`, headers);
 
-    const response = await blandai.get(`/v1/calls/${callId}/correct`, { headers });
-    console.log('Corrected transcript fetched successfully:', response.data);
+export const getCallDetails = async (callId) => {
+  try {
+    console.log('Fetching call details for call ID:', callId);
+    const response = await blandai.get('/v1/calls/', {
+      headers: getAuthHeadersWithCallId(callId),
+    });
+    console.log('Call details fetched successfully:', response.data);
+    console.log('Actual data response:', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
-    console.error('Error fetching corrected transcript:', error);
-    throw new Error(`Bland AI API call failed: ${error.message}`);
+    console.error('Error fetching call details:', error.response ? error.response.data : error.message, error.response ? error.response : error);
+
+    if (error.response) {
+      console.error('Response Data:', error.response.data);
+      console.error('Response Status:', error.response.status);
+      console.error('Response Headers:', error.response.headers);
+    }
+
+    throw new Error(`API call failed: ${error.message}`);
   }
 };
+
 
 export const getTranscript = async (callId) => {
   try {
     console.log('Fetching transcript for call ID:', callId);
-    const response = await blandai.post(`/v1/calls/correct`, {
-      call_id: callId
-    }, {
-      headers: getAuthHeaders(),
+    const response = await blandai.get(`/v1/calls/${callId}/correct`, {
+      headers: getAuthHeadersWithCallId(callId),
     });
     console.log('Transcript fetched successfully:', response.data);
 
@@ -112,17 +127,15 @@ export const getTranscript = async (callId) => {
       return { status: 'processing' };
     }
 
-    const { corrected, aligned, original } = response.data;
-
-    if (!corrected || !aligned || !original) {
-      console.log('Transcript data is not yet available.');
-      return { status: 'not available' };
+    if (!Array.isArray(response.data.corrected)) {
+      console.log('Corrected data is not available:', response.data);
+      return { status: 'not available', data: response.data };
     }
 
     return response.data;
   } catch (error) {
-    console.error('Error fetching transcript:', error.response ? error.response.data : error.message);
-    throw new Error(`Bland AI API call failed: ${error.message}`);
+    console.error('Error fetching transcript:', error.response ? error.response.data : error.message, error.response ? error.response : error);
+    throw new Error(`API call failed: ${error.message}`);
   }
 };
 
