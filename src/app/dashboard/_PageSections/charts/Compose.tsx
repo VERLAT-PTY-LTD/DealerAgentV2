@@ -15,52 +15,16 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const data = [
-  {
-    name: 'Jan',
-    uv: 590,
-    pv: 800,
-    amt: 1400,
-    cnt: 490
-  },
-  {
-    name: 'Feb',
-    uv: 868,
-    pv: 967,
-    amt: 1506,
-    cnt: 590
-  },
-  {
-    name: 'Mar',
-    uv: 1397,
-    pv: 1098,
-    amt: 989,
-    cnt: 350
-  },
-  {
-    name: 'April',
-    uv: 1480,
-    pv: 1200,
-    amt: 1228,
-    cnt: 480
-  },
-  {
-    name: 'May',
-    uv: 1520,
-    pv: 1108,
-    amt: 1100,
-    cnt: 460
-  },
-  {
-    name: 'June',
-    uv: 1400,
-    pv: 680,
-    amt: 1700,
-    cnt: 380
-  }
-];
+const ComposeChart = ({ calls }) => {
+  // Transform calls data to suitable format if needed
+  const data = calls.map(call => ({
+    name: new Date(call.dateTime).toLocaleString('default', { month: 'short' }),
+    uv: call.duration, // example data transformation
+    pv: call.duration * 1.2, // example calculation
+    amt: call.duration * 1.5,
+    cnt: call.duration / 2
+  }));
 
-const Compose = () => {
   return (
     <Card className="p-4 bg-background-light dark:bg-background-dark">
       <CardTitle className="mb-6 text-center">Current Sales Growth:</CardTitle>
@@ -93,4 +57,4 @@ const Compose = () => {
   );
 };
 
-export default Compose;
+export default ComposeChart;

@@ -1,48 +1,91 @@
+// src/app/dashboard/_PageSections/Dashboard.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { FaLaptop, FaTasks, FaUser } from 'react-icons/fa';
 import SummaryCard from './SummaryCard';
 import { Icons } from '@/components/Icons';
 import ComposeChart from '../../_PageSections/charts/Compose';
 import BarChart from '../../_PageSections/charts/Bar';
 import PieChart from '../../_PageSections/charts/Pie';
-import { RecentSales } from '../../_PageSections/RecentSales';
-import { DocShare } from '../../_PageSections/DocShare';
+import RecentCalls from '../../_PageSections/RecentCalls';
+import { getUserDashboardData } from '@/lib/API/Database/dashboard/queries';
+import { toast } from 'react-toastify';
+
+
+
 
 const Dashboard = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getUserDashboardData();
+        setDashboardData(data);
+      } catch (error) {
+        toast.error('Error fetching dashboard data');
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (!dashboardData) {
+    return <div>Loading...</div>;
+  }
+
+  const { agents, todos, calls } = dashboardData;
+  const totalCalls = calls.length;
+  const totalTodos = todos.length;
+  const totalAgents = agents.length;
+
+  // Assuming you have some logic to determine trends
+  const callTrend = 'up'; // Replace with actual logic
+  const todoTrend = 'down'; // Replace with actual logic
+  const agentTrend = 'up'; // Replace with actual logic
+
   return (
     <div className="w-11/12 space-y-6">
       <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
         <SummaryCard
-          card_title={'Revenue'}
-          icon={<Icons.CircleDollarSign />}
-          content_main={45596}
-          content_secondary={'+6.1% from last month'}
+          card_title={'Total Calls'}
+          icon={<FaLaptop />}
+          content_main={totalCalls}
+          content_secondary={`Total calls made by agents`}
+          trend={callTrend}
         />
         <SummaryCard
-          card_title={'Subscriptions'}
-          icon={<Icons.Users />}
-          content_main={10298}
-          content_secondary={'+18.1% from last month'}
+          card_title={'Total Todos'}
+          icon={<FaTasks />}
+          content_main={totalTodos}
+          content_secondary={`Total tasks created`}
+          trend={todoTrend}
         />
         <SummaryCard
-          card_title={'Posts'}
-          icon={<Icons.ScreenShare />}
-          content_main={28353}
-          content_secondary={'+10.1% from last month'}
+          card_title={'Total Agents'}
+          icon={<FaUser />}
+          content_main={totalAgents}
+          content_secondary={`Total agents assigned`}
+          trend={agentTrend}
         />
       </div>
-      <div>
-        <ComposeChart />
-      </div>
-      <div className="grid gap-4 grid-cols-1  xl:grid-cols-4">
+      {/* <div>
+        <ComposeChart calls={calls} />
+      </div> */}
+      <div className="grid gap-4 grid-cols-1 xl:grid-cols-4">
         <div className="md:col-span-3">
-          <BarChart />
+          <BarChart todos={todos} />
         </div>
-        <div className="md:col-span-1">
-          <PieChart />
-        </div>
+        {/* <div className="md:col-span-1">
+          <PieChart agents={agents} />
+        </div> */}
       </div>
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
-        <RecentSales />
-        <DocShare />
+        <RecentCalls calls={calls} />
+        {/* <DocShare /> You can replace with another relevant component */}
       </div>
     </div>
   );

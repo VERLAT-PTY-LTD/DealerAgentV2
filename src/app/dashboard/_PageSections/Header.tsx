@@ -36,9 +36,9 @@ const Header = ({ display_name, email, avatar_url }: HeaderProps) => {
         <div className="mr-8">
           <MobileNav items={routes} />
         </div>
-        <div className="max-[410px]:hidden">
+        {/* <div className="max-[410px]:hidden">
           <TeamSwitcher />
-        </div>
+        </div> */}
 
         <div className="hidden md:inline-block text-lg ml-3">{headerText}</div>
         <div className="ml-auto flex items-center space-x-4">
