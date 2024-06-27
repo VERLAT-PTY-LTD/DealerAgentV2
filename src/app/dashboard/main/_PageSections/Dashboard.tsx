@@ -76,9 +76,9 @@ const Dashboard = () => {
         <ComposeChart calls={calls} />
       </div> */}
       <div className="grid gap-4 grid-cols-1 xl:grid-cols-4">
-        <div className="md:col-span-3">
+        {/* <div className="md:col-span-3">
           <BarChart todos={todos} />
-        </div>
+        </div> */}
         {/* <div className="md:col-span-1">
           <PieChart agents={agents} />
         </div> */}
