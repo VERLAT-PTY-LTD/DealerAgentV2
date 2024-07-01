@@ -96,18 +96,19 @@ export default function TodosEditForm({ todo }) {
       calendly: JSON.parse(values.calendly || '{}'),
       customerCallList: values.customerCallList, // Ensure customer call list is included
       agentId: values.agentId || '', // Ensure agentId is included
+      datasetIds: selectedDatasets,
+      startTime: formatDateTime(values.scheduleTime),
     };
   
     const props = {
       id: todo.id,
       ...processedValues,
-      datasetIds: selectedDatasets,
     };
   
     try {
       await UpdateTodo(props);
       toast.success('Todo Updated');
-      router.push('/dashboard/todos');
+      router.push('/dashboard/todos/my-todos');
     } catch (err) {
       toast.error(config.errorMessageGeneral);
       throw err;
@@ -124,6 +125,30 @@ export default function TodosEditForm({ todo }) {
       console.error('Error activating todo:', error);
     }
   };
+
+  const formatDateTime= (dateTimePickerValue : Date) => {
+    const date = new Date(dateTimePickerValue);
+
+    // Get date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getDate()).padStart(2, '0');
+
+    // Get time components
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    // Get timezone offset in hours and minutes
+    const timezoneOffset = date.getTimezoneOffset();
+    const timezoneHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
+    const timezoneMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
+    const timezoneSign = timezoneOffset >= 0 ? '-' : '+';
+
+    const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timezoneSign}${timezoneHours}:${timezoneMinutes}`;
+    console.log(formattedDateTime)
+    return formattedDateTime;
+  }
 
   return (
     <div>
