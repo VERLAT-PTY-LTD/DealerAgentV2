@@ -61,28 +61,43 @@ export const createCustomerCallList = async (data) => {
       throw new Error('User not authenticated');
     }
 
-    if (!data.customerName || !data.customerPhone) {
+    if (!data.name || !data.description) {
       throw new Error('Customer name and phone are required');
     }
 
     const callList = await prisma.customerCallList.create({
       data: {
         name: data.name,
+        description : data.description,
         userId: user.id,
-        customers: {
-          create: [
-            {
-              name: data.customerName,
-              phone: data.customerPhone,
-            },
-          ],
-        },
-      },
-      include: {
-        customers: true,
       },
     });
     return callList;
+  } catch (err) {
+    PrismaDBError(err);
+    throw err;
+  }
+};
+
+export const createCustomer = async (data) => {
+  try {
+    const user = await GetUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    if (!data.name || !data.phone || !data.callListId) {
+      throw new Error('Customer name, phone, and call list are required');
+    }
+
+    const customer = await prisma.customer.create({
+      data: {
+        name: data.name,
+        phone : data.phone,
+        callListId: data.callListId,
+      },
+    });
+    return customer;
   } catch (err) {
     PrismaDBError(err);
     throw err;
@@ -93,7 +108,7 @@ export const deleteCustomerCallList = async (id) => {
   try {
     await prisma.customerCallList.delete({
       where: { id },
-      include: { customers: true, todos: true },
+      include: { customers: true },
     });
   } catch (err) {
     PrismaDBError(err);

@@ -10,14 +10,14 @@ interface MyTodosProps {
 }
 
 const TodoCard = ({ todo }: TodoCardProps) => {
-  const { name, aiVoice } = todo;
+  const { name } = todo;
   return (
     <Card className="my-4">
       <CardHeader>
         <CardTitle>{name}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div>AI Voice: {aiVoice}</div>
+        <div>AI Voice: </div>
       </CardContent>
     </Card>
   );

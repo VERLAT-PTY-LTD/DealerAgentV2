@@ -21,9 +21,11 @@ const getAuthHeaders = () => ({
 export const callBlandAI = async (payload) => {
   try {
     const headers = {
-      'Authorization': `Bearer ${process.env.BLAND_AI_API_KEY}`,
+      'Authorization': `${process.env.BLAND_AI_API_KEY}`,
       'Content-Type': 'application/json'
     };
+
+    console.log('Calling BlandAI API with payload:', payload);
 
     const response = await blandai.post('/v1/calls', payload, { headers });
     return response.data;

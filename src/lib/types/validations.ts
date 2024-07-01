@@ -4,32 +4,25 @@ import { z } from 'zod';
 export const todoFormSchema = z.object({
   name: z.string().nonempty("Name is required"),
   agentId: z.string().nonempty("Agent selection is required"),
-  transferPhoneNumber: z.string().nonempty("Transfer Phone Number is required"),
-  aiVoice: z.string().nonempty("AI Voice is required"),
   scheduleTime: z.date().refine(date => date >= new Date(), {
     message: "Schedule Time must be a future date",
   }),
   isActive: z.boolean(),
-  model: z.string().optional().default('default_model'),
-  language: z.string().optional().default('en'),
   localDialing: z.boolean().optional().default(false),
-  maxDuration: z.number().optional().default(12),
   answeredByEnabled: z.boolean().optional().default(false),
   waitForGreeting: z.boolean().optional().default(false),
   record: z.boolean().optional().default(false),
   amd: z.boolean().optional().default(false),
-  interruptionThreshold: z.number().optional().default(100),
   voicemailMessage: z.string().optional().nullable().default(''),
   temperature: z.number().optional().nullable().default(0.7),
-  transferList: z.string().optional().default('{}'),
-  metadata: z.string().optional().default('{}'),
   pronunciationGuide: z.string().optional().default('[]'),
-  startTime: z.date().optional().nullable(),
+  startTime: z.string().optional().nullable(),
   requestData: z.string().optional().default('{}'),
   tools: z.string().optional().default('[]'),
-  webhook: z.string().optional().nullable().default(''),
+  webhook: z.string().optional().nullable(),
   calendly: z.string().optional().default('{}'),
   customerCallList: z.string().nonempty("Customer Call List is required"), // Make it required
+  datasetIds : z.array(z.string()).optional().default([]),
 });
 
 

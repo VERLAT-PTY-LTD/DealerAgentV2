@@ -29,7 +29,7 @@ export const StripeWebhookError = (err: Error) => {
 };
 
 export const BlandAIError = (err: any) => {
-  console.error('Bland AI Error:', err);
+  console.error('Bland AI Error:', err.message);
   if (err.response) {
     // The request was made and the server responded with a status code
     console.error('Response data:', err.response.data);

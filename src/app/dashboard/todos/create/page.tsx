@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/Icons';
 import { CreateTodo, ActivateTodo } from '@/lib/API/Database/todos/mutations';
 import { getAllKnowledgeDatasets, getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
-import { getAllAgents } from '@/lib/API/Database/agents/queries';
-import { listVoices } from '@/lib/API/Services/blandAi/blandai';
+import { getAllAgents, } from '@/lib/API/Database/agents/queries';
+import { listVoices, listAgents } from '@/lib/API/Services/blandAi/blandai';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import DatePicker from 'react-datepicker';
@@ -24,7 +24,6 @@ export default function TodosCreateForm() {
   const [datasets, setDatasets] = useState([]);
   const [callLists, setCallLists] = useState([]); // Add state for call lists
   const [agents, setAgents] = useState([]);
-  const [voices, setVoices] = useState([]);
   const [selectedDatasets, setSelectedDatasets] = useState([]);
   const [createdTodoId, setCreatedTodoId] = useState<number | null>(null);
   const form = useForm<todoFormValues>({
@@ -32,30 +31,23 @@ export default function TodosCreateForm() {
     defaultValues: {
       name: '',
       agentId: '',
-      transferPhoneNumber: '',
-      aiVoice: '',
       scheduleTime: new Date(new Date().getTime() + 5 * 60000),
       isActive: false,
-      model: 'base',
-      language: 'en',
       localDialing: false,
-      maxDuration: 12,
       answeredByEnabled: false,
       waitForGreeting: false,
       record: false,
       amd: false,
-      interruptionThreshold: 100,
       voicemailMessage: '',
       temperature: 0.7,
-      transferList: '{}',
-      metadata: '{}',
       pronunciationGuide: '[]',
       startTime: null,
       requestData: '{}',
       tools: '[]',
-      webhook: '',
+      webhook: null,
       calendly: '{}',
-      customerCallList: '' // Add field for customer call list
+      customerCallList: '', // Add field for customer call list
+      datasetIds: [],
     },
   });
 
@@ -77,37 +69,25 @@ export default function TodosCreateForm() {
     };
 
     fetchDatasetsAndAgents();
-
-    const fetchVoices = async () => {
-      try {
-        const allVoices = await listVoices();
-        setVoices(allVoices);
-      } catch (error) {
-        console.error('Error fetching voices:', error);
-      }
-    };
-
-    fetchVoices();
   }, []);
 
 
   const onSubmit = async (values: todoFormValues) => {
     const processedValues = {
       ...values,
-      transferList: JSON.parse(values.transferList || '{}'),
-      metadata: JSON.parse(values.metadata || '{}'),
       pronunciationGuide: JSON.parse(values.pronunciationGuide || '[]'),
       requestData: JSON.parse(values.requestData || '{}'),
       tools: JSON.parse(values.tools || '[]'),
       calendly: JSON.parse(values.calendly || '{}'),
       customerCallList: values.customerCallList, // Ensure customer call list is included
       agentId: values.agentId || '', // Ensure agentId is included
+      datasetIds: selectedDatasets,
+      startTime: formatDateTime(values.scheduleTime),
     };
   
     try {
       const newTodo = await CreateTodo({
         ...processedValues,
-        datasetIds: selectedDatasets,
       });
       setCreatedTodoId(newTodo.id);
       toast.success('Todo Created Successfully!');
@@ -119,6 +99,30 @@ export default function TodosCreateForm() {
       reset();
     }
   };
+
+  const formatDateTime= (dateTimePickerValue : Date) => {
+    const date = new Date(dateTimePickerValue);
+
+    // Get date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getDate()).padStart(2, '0');
+
+    // Get time components
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    // Get timezone offset in hours and minutes
+    const timezoneOffset = date.getTimezoneOffset();
+    const timezoneHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
+    const timezoneMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
+    const timezoneSign = timezoneOffset >= 0 ? '-' : '+';
+
+    const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timezoneSign}${timezoneHours}:${timezoneMinutes}`;
+    console.log(formattedDateTime)
+    return formattedDateTime;
+}
   
 
   const onActivate = async (todoId: number) => {
@@ -186,46 +190,7 @@ export default function TodosCreateForm() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={control}
-                name="transferPhoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transfer Phone Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage>{errors.transferPhoneNumber?.message}</FormMessage>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="aiVoice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>AI Voice</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="bg-background-light dark:bg-background-dark w-full"
-                      >
-                        <option value="">Select a voice</option>
-                        {voices.map(voice => (
-                          <option key={voice.id} value={voice.id}>
-                            {voice.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage>{errors.aiVoice?.message}</FormMessage>
-                  </FormItem>
-                )}
-              />
+              
               <FormField
                 control={control}
                 name="customerCallList"
@@ -251,40 +216,6 @@ export default function TodosCreateForm() {
               />
               <FormField
                 control={control}
-                name="model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Model</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage>{errors.model?.message}</FormMessage>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage>{errors.language?.message}</FormMessage>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
                 name="localDialing"
                 render={({ field }) => (
                   <FormItem>
@@ -297,23 +228,6 @@ export default function TodosCreateForm() {
                       />
                     </FormControl>
                     <FormMessage>{errors.localDialing?.message}</FormMessage>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="maxDuration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Max Duration</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage>{errors.maxDuration?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -382,23 +296,6 @@ export default function TodosCreateForm() {
                       />
                     </FormControl>
                     <FormMessage>{errors.amd?.message}</FormMessage>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="interruptionThreshold"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Interruption Threshold</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage>{errors.interruptionThreshold?.message}</FormMessage>
                   </FormItem>
                 )}
               />

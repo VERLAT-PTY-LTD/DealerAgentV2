@@ -36,23 +36,15 @@ export default function TodosEditForm({ todo }) {
     defaultValues: {
       name: todo.name,
       agentId: todo.agentId,
-      transferPhoneNumber: todo.transferPhoneNumber,
-      aiVoice: todo.aiVoice,
-      model: todo.model,
-      language: todo.language,
       localDialing: todo.localDialing,
-      maxDuration: todo.maxDuration,
       answeredByEnabled: todo.answeredByEnabled,
       waitForGreeting: todo.waitForGreeting,
       record: todo.record,
       amd: todo.amd,
-      interruptionThreshold: todo.interruptionThreshold,
       voicemailMessage: todo.voicemailMessage,
       temperature: todo.temperature,
-      transferList: JSON.stringify(todo.transferList),
-      metadata: JSON.stringify(todo.metadata),
       pronunciationGuide: JSON.stringify(todo.pronunciationGuide),
-      startTime: todo.startTime ? new Date(todo.startTime) : null,
+      startTime: todo.startTime ? new Date(todo.startTime).toString() : null,
       requestData: JSON.stringify(todo.requestData),
       tools: JSON.stringify(todo.tools),
       webhook: todo.webhook,
@@ -98,8 +90,6 @@ export default function TodosEditForm({ todo }) {
   const onSubmit = async (values: todoFormValues) => {
     const processedValues = {
       ...values,
-      transferList: JSON.parse(values.transferList || '{}'),
-      metadata: JSON.parse(values.metadata || '{}'),
       pronunciationGuide: JSON.parse(values.pronunciationGuide || '[]'),
       requestData: JSON.parse(values.requestData || '{}'),
       tools: JSON.parse(values.tools || '[]'),
@@ -187,47 +177,8 @@ export default function TodosEditForm({ todo }) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={control}
-                name="transferPhoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transfer Phone Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...register('transferPhoneNumber')}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="aiVoice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>AI Voice</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className="bg-background-light dark:bg-background-dark w-full"
-                      >
-                        <option value="">Select a voice</option>
-                        {voices.map(voice => (
-                          <option key={voice.id} value={voice.id}>
-                            {voice.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              
+              
               <FormField
                 control={control}
                 name="customerCallList"
@@ -253,42 +204,6 @@ export default function TodosEditForm({ todo }) {
               />
               <FormField
                 control={control}
-                name="model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Model</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...register('model')}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...register('language')}
-                        type="text"
-                        className="bg-background-light dark:bg-background-dark"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
                 name="localDialing"
                 render={({ field }) => (
                   <FormItem>
@@ -298,24 +213,6 @@ export default function TodosEditForm({ todo }) {
                         checked={field.value}
                         onChange={field.onChange}
                         className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="maxDuration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Max Duration</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...register('maxDuration')}
-                        type="number"
-                        className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -384,24 +281,6 @@ export default function TodosEditForm({ todo }) {
                         checked={field.value}
                         onChange={field.onChange}
                         className="bg-background-light dark:bg-background-dark"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name="interruptionThreshold"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Interruption Threshold</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...register('interruptionThreshold')}
-                        type="number"
-                        className="bg-background-light dark:bg-background-dark"
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />

@@ -119,8 +119,8 @@ export default function AgentPage() {
                 <div key={agent.agent_id} className="rounded-md border bg-muted p-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h2 className="font-bold">{agent.name}</h2>
-                      <pre>{agent.prompt}</pre>
+                      <h2 className="font-bold">Agent ID : {agent.agent_id}</h2>
+                      <p>Prompt: {agent.prompt}</p>
                       <p>Voice: {agent.voice}</p>
                       <p>First Sentence: {agent.first_sentence}</p>
                     </div>

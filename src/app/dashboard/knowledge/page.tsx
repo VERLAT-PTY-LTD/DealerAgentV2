@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Textarea } from '@/components/ui/Textarea';
-import { createKnowledgeDataset, deleteKnowledgeDataset, createCustomerCallList, deleteCustomerCallList } from '@/lib/API/Database/knowledge/mutations';
+import { createKnowledgeDataset, deleteKnowledgeDataset, createCustomerCallList, deleteCustomerCallList, createCustomer } from '@/lib/API/Database/knowledge/mutations';
 import { getAllKnowledgeDatasets, getAllCustomerCallLists } from '@/lib/API/Database/knowledge/queries';
+import { set } from 'zod';
 
 export default function KnowledgeDatasetPage() {
   const [datasets, setDatasets] = useState([]);
@@ -14,6 +15,8 @@ export default function KnowledgeDatasetPage() {
   const [inputType, setInputType] = useState('');
   const [inputData, setInputData] = useState('');
   const [callListName, setCallListName] = useState('');
+  const [callListDescription, setCallListDescription] = useState('');
+  const [customerCallList, setCustomerCallList] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
@@ -50,20 +53,40 @@ export default function KnowledgeDatasetPage() {
     event.preventDefault();
     const newCallList = {
       name: callListName,
-      customerName,
-      customerPhone,
+      description : callListDescription
     };
 
     try {
       const createdCallList = await createCustomerCallList(newCallList);
       setCallLists([...callLists, createdCallList]);
       setCallListName('');
+      setCallListDescription('');
+    } catch (error) {
+      console.error('Error creating call list:', error);
+    }
+  };
+
+  const handleSubmitCustomer = async (event) => {
+    event.preventDefault();
+    const newCustomer = {
+      callListId: customerCallList,
+      name: customerName,
+      phone: customerPhone,
+    };
+
+    try {
+      const createdCustomer = await createCustomer(newCustomer);
+      
+      const allCallLists = await getAllCustomerCallLists();
+      setCallLists(allCallLists);
+
+      setCustomerCallList('');
       setCustomerName('');
       setCustomerPhone('');
     } catch (error) {
       console.error('Error creating call list:', error);
     }
-  };
+  }
 
   const handleDeleteDataset = async (id) => {
     try {
@@ -129,6 +152,31 @@ export default function KnowledgeDatasetPage() {
             />
             <input
               type="text"
+              placeholder="Call List Description"
+              className="w-full mb-4 p-2 border"
+              value={callListDescription}
+              onChange={(e) => setCallListDescription(e.target.value)}
+            />
+            <Button type="submit">Add Call List</Button>
+          </form>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight mb-2">Add Customer:</h1>
+          <form onSubmit={handleSubmitCustomer} className="h-full">
+            <select
+                className="w-full mb-4 p-2 border"
+                value={customerCallList}
+                onChange={(e) => setCustomerCallList(e.target.value)}
+              >
+                <option value="" disabled>Select Call List</option>
+              {
+                callLists.map((callList) => (
+                  <option key={callList.id} value={callList.id}>{callList.name}</option>
+                ))
+              }
+            </select>
+            <input
+              type="text"
               placeholder="Customer Name"
               className="w-full mb-4 p-2 border"
               value={customerName}
@@ -171,6 +219,7 @@ export default function KnowledgeDatasetPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="font-bold">{callList.name}</h2>
+                    <h3 className="font-bold">{callList.description}</h3>
                     {callList.customers && callList.customers.map((customer) => (
                       <p key={customer.id}>{customer.name} - {customer.phone}</p>
                     ))}

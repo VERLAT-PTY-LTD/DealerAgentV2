@@ -12,6 +12,13 @@ export const GetTodosByUserId = cache(async (): Promise<Todo[]> => {
     const todos = await prisma.todo.findMany({
       where: {
         user_id
+      },
+      include: {
+        customerCallList: {
+          include: { customers: true }
+        },
+        agent: true, // Include the agent details
+        datasets : true
       }
     });
 
@@ -26,6 +33,13 @@ export const GetTodoById = cache(async (id: number): Promise<Todo> => {
     const todo = await prisma.todo.findFirst({
       where: {
         id
+      },
+      include: {
+        customerCallList: {
+          include: { customers: true }
+        },
+        agent: true, // Include the agent details
+        datasets : true
       }
     });
 
@@ -38,7 +52,14 @@ export const GetTodoById = cache(async (id: number): Promise<Todo> => {
 export const GetAllTodos = cache(async (): Promise<Todo[]> => {
   try {
     const todos = await prisma.todo.findMany({
-      take: 10
+      take: 10,
+      include: {
+        customerCallList: {
+          include: { customers: true }
+        },
+        agent: true, // Include the agent details
+        datasets : true
+      }
     });
 
     return todos;

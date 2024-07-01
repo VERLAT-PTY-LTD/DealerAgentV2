@@ -19,10 +19,10 @@ interface ActivateTodoPropsI {
 
 export const CreateTodo = async (data: todoFormValues & { datasetIds: string[], customerCallList: string, agentId: string }) => {
   const {
-    name, transferPhoneNumber, aiVoice, scheduleTime, isActive, datasetIds,
-    model, language, localDialing, maxDuration, answeredByEnabled, waitForGreeting,
-    record, amd, interruptionThreshold, voicemailMessage, transferList, metadata,
-    pronunciationGuide, startTime, requestData, tools, webhook, calendly, customerCallList, agentId
+    name, scheduleTime, isActive, datasetIds,
+    localDialing,  answeredByEnabled, waitForGreeting,
+    record, amd,  voicemailMessage,  
+    pronunciationGuide, startTime, requestData, tools, webhook, calendly, customerCallList, agentId, 
   } = data;
 
   const user = await GetUser();
@@ -31,25 +31,17 @@ export const CreateTodo = async (data: todoFormValues & { datasetIds: string[], 
 
   const todoData: Prisma.TodoCreateInput = {
     name,
-    transferPhoneNumber,
-    aiVoice,
     scheduleTime: new Date(scheduleTime), // Ensure correct format
     isActive,
     user: { connect: { id: user_id } },
     author,
-    model,
-    language,
     localDialing,
-    maxDuration,
     answeredByEnabled,
     waitForGreeting,
     record,
     amd,
-    interruptionThreshold,
     voicemailMessage,
     temperature: 0.5, // Set default value
-    transferList: transferList || {}, // Use empty object if undefined
-    metadata: metadata || {}, // Use empty object if undefined
     pronunciationGuide: pronunciationGuide || [], // Use empty array if undefined
     startTime,
     requestData: requestData || {}, // Use empty object if undefined
@@ -81,7 +73,8 @@ export const ActivateTodo = async ({ id }: ActivateTodoPropsI) => {
         customerCallList: {
           include: { customers: true }
         },
-        agent: true // Include the agent details
+        agent: true, // Include the agent details
+        datasets : true
       }
     });
 
@@ -93,22 +86,49 @@ export const ActivateTodo = async ({ id }: ActivateTodoPropsI) => {
       throw new Error('Agent not found');
     }
 
-    const callData = todo.customerCallList.customers.map(customer => ({
+    if (!todo.datasets) {
+      throw new Error('Datasets not found');
+    }
+
+    const dataset = todo.datasets.map(dataset => dataset.type + ' : ' + dataset.content).join('\n'); 
+
+    const customerData = todo.customerCallList.customers.map(customer => ({
       phone_number: customer.phone,
-      task: todo.agent.prompt, // Use the agent's prompt as the task
+      task: todo.agent.prompt + "\nThis is information:\n" + dataset, // Use the agent's prompt as the task
       // Additional customer-specific data if needed
     }));
 
-    const payload = {
-      base_prompt: todo.agent.prompt, // Use the agent's prompt as the base prompt
-      call_data: callData,
-      from: todo.transferPhoneNumber,
-      label: todo.name,
-      campaign_id: todo.id,
-      test_mode: false, // Set to true if testing
-    };
+    // Call BlandAI for each customer
+    for (const customer of customerData) {
+      const payload = {
+        phone_number: customer.phone_number,
+        task: customer.task,
+        model: todo.agent.model,
+        language : todo.agent.language,
+        voice : todo.agent.voice,
+        voiceSettings : todo.voiceSettings,
+        local_dialing : todo.localDialing,
+        temperature: todo.temperature,
+        max_duration: todo.agent.max_duration,
+        answered_by_enabled: todo.answeredByEnabled,
+        wait_for_greeting: todo.waitForGreeting,
+        record: todo.record,
+        amd: todo.amd,
+        interruption_threshold: todo.agent.interruption_threshold,
+        voicemail_message: todo.voicemailMessage,
+        pronunciation_guide: todo.pronunciationGuide,
+        start_time: todo.startTime,
+        request_data: todo.requestData,
+        tools: todo.tools,
+        webhook: todo.webhook,
+        calendly: todo.calendly
+      };
 
-    await callBlandAI(payload);
+      console.log(payload)
+      
+      await callBlandAI(payload);
+    }
+
   } catch (err) {
     PrismaDBError(err);
   }
@@ -116,9 +136,9 @@ export const ActivateTodo = async ({ id }: ActivateTodoPropsI) => {
 
 export const UpdateTodo = async (data: UpdateTodoPropsI & { datasetIds: string[], customerCallList: string, agentId: string }) => {
   const {
-    id, name, transferPhoneNumber, aiVoice, scheduleTime, isActive, datasetIds,
-    model, language, localDialing, maxDuration, answeredByEnabled, waitForGreeting,
-    record, amd, interruptionThreshold, voicemailMessage, transferList, metadata,
+    id, name, scheduleTime, isActive, datasetIds,
+    localDialing, answeredByEnabled, waitForGreeting,
+    record, amd, voicemailMessage,
     pronunciationGuide, startTime, requestData, tools, webhook, calendly, customerCallList, agentId
   } = data;
 
@@ -128,25 +148,17 @@ export const UpdateTodo = async (data: UpdateTodoPropsI & { datasetIds: string[]
 
   const todoData: Prisma.TodoUpdateInput = {
     name,
-    transferPhoneNumber,
-    aiVoice,
     scheduleTime: new Date(scheduleTime), // Ensure correct format
     isActive,
     user: { connect: { id: user_id } },
     author,
-    model,
-    language,
     localDialing,
-    maxDuration,
     answeredByEnabled,
     waitForGreeting,
     record,
     amd,
-    interruptionThreshold,
     voicemailMessage,
     temperature: 0.5, // Set default value
-    transferList: transferList || {}, // Use empty object if undefined
-    metadata: metadata || {}, // Use empty object if undefined
     pronunciationGuide: pronunciationGuide || [], // Use empty array if undefined
     startTime,
     requestData: requestData || {}, // Use empty object if undefined

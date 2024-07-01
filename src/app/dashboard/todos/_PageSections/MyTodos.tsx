@@ -21,7 +21,7 @@ interface MyTodosProps {
 const TodoCard = ({ todo }: TodoCardProps) => {
   const router = useRouter();
 
-  const { id, name, transferPhoneNumber, aiVoice } = todo;
+  const { id, name } = todo;
 
   const Delete = async () => {
     const todo_id = Number(id);
@@ -42,8 +42,7 @@ const TodoCard = ({ todo }: TodoCardProps) => {
         <CardTitle>{name}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div><strong>Transfer Phone Number:</strong> {transferPhoneNumber}</div>
-        <div><strong>AI Voice:</strong> {aiVoice}</div>
+        
         <Link
           href={`/dashboard/todos/edit/${id}`}
           className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'mr-6')}

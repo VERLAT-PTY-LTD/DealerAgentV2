@@ -95,27 +95,19 @@ model Call {
 model Todo {
   id                    Int                    @id @default(autoincrement())
   name                  String
-  transferPhoneNumber   String
-  aiVoice               String
-  model                 String                 @default("default_model")
-  language              String                 @default("en")
   voiceSettings         Json                   @default("{}")
   localDialing          Boolean                @default(false)
-  maxDuration           Int                    @default(12)
   answeredByEnabled     Boolean                @default(false)
   waitForGreeting       Boolean                @default(false)
   record                Boolean                @default(false)
   amd                   Boolean                @default(false)
-  interruptionThreshold Int                    @default(100)
   voicemailMessage      String?                @default("")
   temperature           Float?                 @default(0.7)
-  transferList          Json                   @default("{}")
-  metadata              Json                   @default("{}")
   pronunciationGuide    Json                   @default("[]")
-  startTime             DateTime?
+  startTime             String?
   requestData           Json                   @default("{}")
   tools                 Json                   @default("[]")
-  webhook               String?                @default("")
+  webhook               String?                
   calendly              Json                   @default("{}")
   scheduleTime          DateTime
   isActive              Boolean
@@ -125,7 +117,7 @@ model Todo {
   datasets              KnowledgeDataset[]     @relation("TodoDatasets")
   calls                 Call[]
   agentId               String?                // Make the new field optional initially
-  agent                 Agent?                 @relation(fields: [agentId], references: [id])
+  agent                 Agent?                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
   customerCallListId    String?                // New field for the relation
   customerCallList      CustomerCallList?      @relation("TodoCustomerCallList", fields: [customerCallListId], references: [id], onDelete: SetNull) // Add onDelete behavior
 }
@@ -134,13 +126,14 @@ model Customer {
   name      String
   phone     String
   createdAt DateTime @default(now())
-  callList  CustomerCallList @relation(fields: [callListId], references: [id])
+  callList  CustomerCallList @relation(fields: [callListId], references: [id], onDelete: Cascade)
   callListId String
 }
 
 model CustomerCallList {
   id        String     @id @default(cuid())
   name      String
+  description String
   createdAt DateTime   @default(now())
   userId    String
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -163,7 +156,7 @@ model Agent {
   prompt                String
   voice                 String
   language              String    @default("en")
-  model                 String    @default("default_model")
+  model                 String    @default("base")
   first_sentence        String
   interruption_threshold Int      @default(100)
   max_duration          Int       @default(12)

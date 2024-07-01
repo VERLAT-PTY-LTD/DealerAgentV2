@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Todo" ALTER COLUMN "startTime" SET DATA TYPE TEXT;

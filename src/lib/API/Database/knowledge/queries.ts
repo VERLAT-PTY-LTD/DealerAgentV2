@@ -78,6 +78,8 @@ export const getAllCustomerCallLists = async () => {
         customers: true,
       },
     });
+
+    console.log(callLists)
     return callLists;
   } catch (err) {
     PrismaDBError(err);
